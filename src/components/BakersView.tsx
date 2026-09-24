@@ -24,7 +24,11 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
 
   const baseBakersCalc = useMemo(() => {
     if (!selectedRecipe) return null;
-    return CalculateBakersPercentageUseCase.execute(selectedRecipe.ingredients);
+    try {
+      return CalculateBakersPercentageUseCase.execute(selectedRecipe.ingredients);
+    } catch (err) {
+      return null;
+    }
   }, [selectedRecipe]);
 
   const [targetFlourInput, setTargetFlourInput] = useState<number>(() => {
@@ -69,7 +73,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
       <div className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 card-shadow space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
               <Croissant className="w-5 h-5" />
             </div>
             <div>
@@ -144,6 +148,15 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
           </div>
         )}
 
+        {!baseBakersCalc && (
+          <div className="bg-theme-card-subtle border border-theme-subtle rounded-xl p-4 text-center mt-3">
+            <h3 className="text-sm font-bold text-theme-main">Receita Incompatível</h3>
+            <p className="text-xs text-theme-muted mt-1">
+              Esta receita não possui ingredientes base (como farinha de trigo) necessários para o cálculo da Porcentagem de Padeiro.
+            </p>
+          </div>
+        )}
+        
         {/* Controles de Peso */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           <div className={`p-3.5 rounded-xl border transition ${adjustMode === 'flour' ? 'bg-amber-500/10 border-amber-500/50' : 'bg-theme-card-subtle border-theme-subtle'}`}>
@@ -157,7 +170,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                   setAdjustMode('flour');
                   setTargetFlourInput(parseFloat(e.target.value) || 0);
                 }}
-                className="w-full bg-transparent text-xl font-black text-amber-600 dark:text-amber-400 focus:outline-none scale-number"
+                className="w-full bg-transparent text-xl font-black text-amber-700 dark:text-amber-400 focus:outline-none scale-number"
               />
               <span className="text-xs text-theme-dim font-bold ml-1">g</span>
             </div>
@@ -225,7 +238,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                 <div className="flex items-center space-x-4 sm:space-x-6 shrink-0">
                   {/* Baker's % */}
                   <div className="text-right w-14 sm:w-16">
-                    <span className="text-xs font-black text-amber-600 dark:text-amber-400 scale-number">
+                    <span className="text-xs font-black text-amber-700 dark:text-amber-400 scale-number">
                       {ing.bakersPercentage ? `${ing.bakersPercentage}%` : '-'}
                     </span>
                     <span className="text-[10px] text-theme-dim block leading-none">Baker %</span>

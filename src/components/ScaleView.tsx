@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Recipe, RecipeIngredient } from '../domain/schemas/recipe.schema.js';
 import { ScaleRecipeUseCase, ScaleOptions } from '../domain/use-cases/ScaleRecipe.js';
 import { ConvertUnitsUseCase } from '../domain/use-cases/ConvertUnits.js';
@@ -38,6 +38,31 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
   const [checkedIngredients, setCheckedIngredients] = useState<Record<string, boolean>>({});
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [expandedSubId, setExpandedSubId] = useState<string | null>(null);
+  const [activeSubs, setActiveSubs] = useState<Record<string, { multiplier: number, newName: string }>>({});
+  
+  const touchStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const endX = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - endX;
+    if (diff > 50) setActiveStepIndex((prev) => Math.min(recipe.steps.length - 1, prev + 1));
+    else if (diff < -50) setActiveStepIndex((prev) => Math.max(0, prev - 1));
+    touchStartX.current = null;
+  };
+
+  const patchedRecipe = useMemo(() => {
+    return {
+      ...recipe,
+      ingredients: recipe.ingredients.map(ing => {
+        const sub = activeSubs[ing.id];
+        if (sub) {
+          return { ...ing, name: sub.newName, amount: ing.amount * sub.multiplier };
+        }
+        return ing;
+      })
+    };
+  }, [recipe, activeSubs]);
 
   // Screen Wake Lock API (RNF-06 / ADR-07)
   const { isSupported: wakeLockSupported, isActive: wakeLockActive, requestLock, releaseLock } = useWakeLock();
@@ -65,7 +90,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
   }, [scaleMode, currentMultiplier, anchorId, anchorGramsInput]);
 
   const scaledResult = useMemo(() => {
-    return ScaleRecipeUseCase.execute(recipe, scaleOptions);
+    return ScaleRecipeUseCase.execute(patchedRecipe, scaleOptions);
   }, [recipe, scaleOptions]);
 
   const handleToggleChecked = (id: string) => {
@@ -107,7 +132,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
           >
             {wakeLockActive ? (
               <>
-                <Lock className="w-3.5 h-3.5 mr-1.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                <Lock className="w-3.5 h-3.5 mr-1.5 text-amber-700 dark:text-amber-400 shrink-0" />
                 <span>Tela Sempre Ativa</span>
               </>
             ) : (
@@ -298,7 +323,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
                             className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-300 font-bold hover:bg-amber-500/25 flex items-center transition"
                             title="Ver substituição físico-química"
                           >
-                            <FlaskConical className="w-3 h-3 mr-1 text-amber-600 dark:text-amber-400" />
+                            <FlaskConical className="w-3 h-3 mr-1 text-amber-700 dark:text-amber-400" />
                             Substituição
                           </button>
                         )}
@@ -318,7 +343,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
                 {sub && isSubOpen && (
                   <div className="mt-3 pt-3 border-t border-amber-500/20 bg-amber-500/5 p-3 rounded-xl text-xs space-y-1.5 text-theme-main">
                     <div className="flex items-center text-amber-900 dark:text-amber-200 font-bold">
-                      <FlaskConical className="w-3.5 h-3.5 mr-1.5 text-amber-600 dark:text-amber-400" />
+                      <FlaskConical className="w-3.5 h-3.5 mr-1.5 text-amber-700 dark:text-amber-400" />
                       <span>Substituto: {sub.substitute}</span>
                     </div>
                     <p className="text-[11px] text-theme-muted">
@@ -330,6 +355,33 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
                     <p className="text-[11px] text-theme-muted leading-relaxed">
                       {sub.explanation}
                     </p>
+                    {sub.multiplier && sub.overrideName && !activeSubs[ing.id] && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveSubs(prev => ({ ...prev, [ing.id]: { multiplier: sub.multiplier!, newName: sub.overrideName! } }));
+                          setExpandedSubId(null);
+                        }}
+                        className="mt-2 w-full bg-amber-700 hover:bg-amber-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
+                      >
+                        Aplicar Substituição
+                      </button>
+                    )}
+                    {activeSubs[ing.id] && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveSubs(prev => {
+                            const clone = {...prev};
+                            delete clone[ing.id];
+                            return clone;
+                          });
+                        }}
+                        className="mt-2 w-full bg-theme-card border border-theme-subtle text-theme-main px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
+                      >
+                        Reverter Original
+                      </button>
+                    )}
                     {sub.waterAdjustmentAlert && (
                       <div className="p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-[11px] mt-1 font-mono font-medium">
                         {sub.waterAdjustmentAlert}
@@ -362,7 +414,11 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
         </div>
 
         {/* Cartão da Etapa Ativa */}
-        <div className="bg-theme-card-subtle border border-theme-subtle rounded-xl p-4 sm:p-5 min-h-[90px] flex items-center">
+        <div 
+          onTouchStart={handleTouchStart} 
+          onTouchEnd={handleTouchEnd}
+          className="bg-theme-card-subtle border border-theme-subtle rounded-xl p-4 sm:p-5 min-h-[90px] flex items-center select-none"
+        >
           <p className="text-sm sm:text-base text-theme-main font-medium leading-relaxed">
             {recipe.steps[activeStepIndex]}
           </p>

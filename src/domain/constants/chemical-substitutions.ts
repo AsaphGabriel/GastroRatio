@@ -2,7 +2,9 @@ export interface ChemicalSubstitution {
   readonly original: string;
   readonly substitute: string;
   readonly ratio: string; // ex: "1:1" ou "3/4 de xícara para cada xícara"
-  readonly physicalFunction: string; // emulsificante, aerador, espessante, umectante
+  readonly physicalFunction: string;
+  readonly multiplier?: number;
+  readonly overrideName?: string; // emulsificante, aerador, espessante, umectante
   readonly waterAdjustmentAlert?: string; // alerta de água livre (RN-03)
   readonly explanation: string;
 }
@@ -15,6 +17,8 @@ export const CANONICAL_CHEMICAL_SUBSTITUTIONS: readonly ChemicalSubstitution[] =
   {
     original: 'açúcar refinado',
     substitute: 'mel de abelha',
+    multiplier: 0.75,
+    overrideName: 'Mel de Abelha',
     ratio: 'Use 0.75x do peso do açúcar',
     physicalFunction: 'Adoçante e retentor de umidade (higroscópico)',
     waterAdjustmentAlert: 'Atenção: O mel contém cerca de 17% a 18% de água livre. Reduza aproximadamente 2 colheres de sopa de líquido da receita para cada xícara de mel.',
@@ -30,6 +34,8 @@ export const CANONICAL_CHEMICAL_SUBSTITUTIONS: readonly ChemicalSubstitution[] =
   {
     original: 'manteiga',
     substitute: 'óleo vegetal ou azeite',
+    multiplier: 0.85,
+    overrideName: 'Óleo Vegetal',
     ratio: 'Use 0.85x do peso da manteiga (ex: 85g de óleo para 100g de manteiga)',
     physicalFunction: 'Gordura e maciez',
     waterAdjustmentAlert: 'A manteiga contém ~16% de água e sólidos de leite. O óleo vegetal é 100% gordura pura. Reduzir 15% do peso evita deixar o bolo excessivamente pesado.',
@@ -52,6 +58,8 @@ export const CANONICAL_CHEMICAL_SUBSTITUTIONS: readonly ChemicalSubstitution[] =
   {
     original: 'farinha de trigo (como espessante de molho)',
     substitute: 'amido de milho (maizena)',
+    multiplier: 0.5,
+    overrideName: 'Amido de Milho',
     ratio: 'Use metade do peso da farinha (1 colher de sopa de amido para 2 de farinha)',
     physicalFunction: 'Espessante por gelatinização de amido',
     explanation: 'O amido de milho puro tem o dobro do poder espessante da farinha de trigo e não adiciona sabor residual de farinha crua.'
