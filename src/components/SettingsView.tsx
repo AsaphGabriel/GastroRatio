@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../data/database.js';
+import { RecipeSchema, PantryItemSchema } from '../domain/schemas/recipe.schema.js';
 import { Key, Download, Upload, ShieldCheck, Database, Check } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
@@ -51,13 +52,33 @@ export const SettingsView: React.FC = () => {
         const content = event.target?.result as string;
         const parsed = JSON.parse(content);
         if (parsed.recipes && Array.isArray(parsed.recipes)) {
-          await db.recipes.clear();
-          await db.recipes.bulkAdd(parsed.recipes);
-          alert('Backup restaurado com sucesso!');
+          // Validação estrita de runtime com Zod (Pilar 2 & 8)
+          for (const r of parsed.recipes) {
+            RecipeSchema.parse(r);
+          }
+          if (parsed.pantry && Array.isArray(parsed.pantry)) {
+            for (const p of parsed.pantry) {
+              PantryItemSchema.parse(p);
+            }
+          }
+
+          // Transação atômica ACID (tudo ou nada)
+          await db.transaction('rw', [db.recipes, db.pantry], async () => {
+            await db.recipes.clear();
+            await db.recipes.bulkAdd(parsed.recipes);
+            if (parsed.pantry && Array.isArray(parsed.pantry)) {
+              await db.pantry.clear();
+              await db.pantry.bulkAdd(parsed.pantry);
+            }
+          });
+
+          alert('Backup restaurado e validado com sucesso!');
           window.location.reload();
+        } else {
+          alert('Arquivo de backup inválido: formato de receitas não identificado.');
         }
-      } catch (err) {
-        alert('Erro ao processar arquivo de backup JSON: ' + err);
+      } catch (err: any) {
+        alert('Erro ao processar/validar backup JSON: ' + (err?.message || err));
       }
     };
     reader.readAsText(file);

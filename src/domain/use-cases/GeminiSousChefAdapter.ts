@@ -1,4 +1,4 @@
-import { Recipe, RecipeSchema } from '../schemas/recipe.schema.js';
+import { Recipe, RecipeSchema, UnitType } from '../schemas/recipe.schema.js';
 
 export interface SousChefParseResult {
   recipe: Recipe;
@@ -7,11 +7,11 @@ export interface SousChefParseResult {
 }
 
 /**
- * Adapter para assistência avançada de IA via Gemini 1.5 Flash (Camada 2 da Cascata).
- * Utiliza Structured Outputs (JSON Schema estrito) e fallback local gracioso.
+ * Adapter para assistência avançada de IA via Gemini 2.5 Flash (Camada 2 da Cascata).
+ * Utiliza Structured Outputs e fallback com tratamento detalhado de erros.
  */
 export class GeminiSousChefAdapter {
-  private static readonly API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+  private static readonly API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
   /**
    * Parse avançado com IA para textos caóticos ou transcrições de áudio culinárias.
@@ -46,14 +46,26 @@ Regras Inegociáveis:
     };
 
     try {
-      const response = await fetch(`${this.API_ENDPOINT}?key=${key}`, {
+      const response = await fetch(`${this.API_ENDPOINT}?key=${encodeURIComponent(key)}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': key
+        },
         body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
-        throw new Error(`[GeminiSousChef] Erro na API Gemini: HTTP ${response.status}`);
+        let errorDetails = `HTTP ${response.status}`;
+        try {
+          const errData = await response.json();
+          if (errData?.error?.message) {
+            errorDetails += ` — ${errData.error.message}`;
+          }
+        } catch {
+          // ignora se não for json
+        }
+        throw new Error(`[GeminiSousChef] Erro na API Gemini: ${errorDetails}`);
       }
 
       const data = await response.json();
@@ -62,7 +74,12 @@ Regras Inegociáveis:
         throw new Error('[GeminiSousChef] Resposta vazia da API Gemini.');
       }
 
-      const parsed = JSON.parse(rawJson);
+      let cleanedJson = rawJson.trim();
+      if (cleanedJson.startsWith('```')) {
+        cleanedJson = cleanedJson.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+      }
+
+      const parsed = JSON.parse(cleanedJson);
 
       // Normaliza ID e campos obrigatórios para o RecipeSchema
       const normalizedRecipe: Recipe = {
@@ -74,15 +91,35 @@ Regras Inegociáveis:
         prepTimeMinutes: parsed.prepTimeMinutes || 15,
         cookTimeMinutes: parsed.cookTimeMinutes || 25,
         isBakingRecipe: !!parsed.isBakingRecipe,
-        ingredients: (parsed.ingredients || []).map((ing: any, idx: number) => ({
-          id: `ing-ai-${idx + 1}`,
-          name: ing.name,
-          amount: typeof ing.amount === 'number' ? ing.amount : parseFloat(ing.amount) || 100,
-          unit: ing.unit || 'g',
-          isStaple: !!ing.isStaple,
-          category: ing.category || 'vegetable',
-          bakersPercentage: ing.bakersPercentage
-        })),
+        ingredients: (parsed.ingredients || []).map((ing: any, idx: number) => {
+          const rawUnit = String(ing.unit || 'g').toLowerCase().trim();
+          let unit: UnitType = 'g';
+          if (['g', 'kg', 'ml', 'l', 'cup', 'tablespoon', 'teaspoon', 'unit'].includes(rawUnit)) {
+            unit = rawUnit as UnitType;
+          } else if (rawUnit.includes('xíc') || rawUnit.includes('copo')) {
+            unit = 'cup';
+          } else if (rawUnit.includes('sopa')) {
+            unit = 'tablespoon';
+          } else if (rawUnit.includes('chá') || rawUnit.includes('sobremesa')) {
+            unit = 'teaspoon';
+          } else if (rawUnit.includes('quilo') || rawUnit === 'kg') {
+            unit = 'kg';
+          } else if (rawUnit.includes('litro') || rawUnit === 'l') {
+            unit = 'l';
+          } else if (rawUnit.includes('mili') || rawUnit === 'ml') {
+            unit = 'ml';
+          }
+
+          return {
+            id: `ing-ai-${idx + 1}`,
+            name: ing.name || ing.ingredient || ing.item || `Ingrediente ${idx + 1}`,
+            amount: typeof ing.amount === 'number' ? ing.amount : parseFloat(ing.amount) || 100,
+            unit,
+            isStaple: !!ing.isStaple,
+            category: ing.category || 'vegetable',
+            bakersPercentage: ing.bakersPercentage
+          };
+        }),
         steps: Array.isArray(parsed.steps) ? parsed.steps : ['Prepare conforme instruído.'],
         tags: Array.isArray(parsed.tags) ? parsed.tags : ['importada', 'ia']
       };
