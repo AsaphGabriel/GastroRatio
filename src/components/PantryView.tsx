@@ -151,7 +151,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
             <button
               key={cat.id}
               onClick={() => setSelectedCategoryFilter(cat.id)}
-              className={`text-xs px-3 py-1.5 rounded-xl transition whitespace-nowrap font-medium touch-target ${
+              className={`shrink-0 text-xs px-3 py-1.5 rounded-xl transition whitespace-nowrap font-medium touch-target ${
                 selectedCategoryFilter === cat.id
                   ? 'bg-theme-brand text-white shadow-sm'
                   : 'bg-theme-card-subtle text-theme-muted hover:text-theme-main border border-theme-subtle'

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export interface UseWakeLockReturn {
   isSupported: boolean;
@@ -7,14 +7,10 @@ export interface UseWakeLockReturn {
   releaseLock: () => Promise<void>;
 }
 
-/**
- * Hook ergonômico para Screen Wake Lock API (RNF-06 / ADR-07).
- * Impede que a tela do celular apague durante o preparo ativo de receitas.
- */
 export function useWakeLock(): UseWakeLockReturn {
   const [isSupported, setIsSupported] = useState(false);
   const [isActive, setIsActive] = useState(false);
-  const [sentinel, setSentinel] = useState<any>(null);
+  const sentinelRef = useRef<any>(null);
 
   useEffect(() => {
     setIsSupported('wakeLock' in navigator);
@@ -22,15 +18,16 @@ export function useWakeLock(): UseWakeLockReturn {
 
   const requestLock = useCallback(async () => {
     if (!('wakeLock' in navigator)) return;
+    if (sentinelRef.current) return; // Já temos a trava
 
     try {
       const lock = await (navigator as any).wakeLock.request('screen');
-      setSentinel(lock);
+      sentinelRef.current = lock;
       setIsActive(true);
 
       lock.addEventListener('release', () => {
         setIsActive(false);
-        setSentinel(null);
+        sentinelRef.current = null;
       });
     } catch (err) {
       console.warn('[WakeLock] Erro ao solicitar trava de tela:', err);
@@ -39,21 +36,20 @@ export function useWakeLock(): UseWakeLockReturn {
   }, []);
 
   const releaseLock = useCallback(async () => {
-    if (sentinel) {
+    if (sentinelRef.current) {
       try {
-        await sentinel.release();
-        setSentinel(null);
+        await sentinelRef.current.release();
+        sentinelRef.current = null;
         setIsActive(false);
       } catch (err) {
         console.warn('[WakeLock] Erro ao liberar trava:', err);
       }
     }
-  }, [sentinel]);
+  }, []);
 
-  // Re-adquire a trava quando o usuário volta para o app (visibilidade mudou)
   useEffect(() => {
     const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'visible' && isActive && !sentinel) {
+      if (document.visibilityState === 'visible' && isActive && !sentinelRef.current) {
         await requestLock();
       }
     };
@@ -62,7 +58,7 @@ export function useWakeLock(): UseWakeLockReturn {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isActive, sentinel, requestLock]);
+  }, [isActive, requestLock]);
 
   return { isSupported, isActive, requestLock, releaseLock };
 }

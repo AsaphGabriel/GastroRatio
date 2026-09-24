@@ -17,7 +17,7 @@ export type ActiveTab = 'pantry' | 'scale' | 'bakers' | 'catalog' | 'settings';
 interface HeaderProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
-  hasSelectedRecipe: boolean;
+
   onOpenImporter?: () => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
@@ -26,7 +26,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
-  hasSelectedRecipe,
+
   onOpenImporter,
   theme,
   onToggleTheme
@@ -114,67 +114,65 @@ export const Header: React.FC<HeaderProps> = ({
       <nav className="max-w-4xl mx-auto mt-2.5 grid grid-cols-5 gap-1 bg-theme-card-subtle p-1 rounded-xl border border-theme-subtle">
         <button
           onClick={() => setActiveTab('pantry')}
-          className={`flex items-center justify-center py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
+          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
             activeTab === 'pantry'
               ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
               : 'text-theme-muted hover:text-theme-main'
           }`}
         >
-          <UtensilsCrossed className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 shrink-0" />
-          <span className="truncate">Bancada</span>
+          <UtensilsCrossed className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
+          <span className="text-[10px] sm:text-xs">Bancada</span>
         </button>
 
         <button
           onClick={() => setActiveTab('scale')}
-          disabled={!hasSelectedRecipe}
-          className={`flex items-center justify-center py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
+          
+          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
             activeTab === 'scale'
               ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
-              : hasSelectedRecipe
-              ? 'text-theme-muted hover:text-theme-main'
-              : 'text-theme-dim opacity-40 cursor-not-allowed'
+              : 'text-theme-muted hover:text-theme-main'
           }`}
-          title={!hasSelectedRecipe ? 'Selecione uma receita para abrir a balança' : 'Balança de precisão'}
+          title='Balança de precisão'
         >
-          <Scale className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 shrink-0" />
-          <span className="truncate">Balança</span>
+          <Scale className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
+          <span className="text-[10px] sm:text-xs">Balança</span>
         </button>
 
         <button
           onClick={() => setActiveTab('bakers')}
-          className={`flex items-center justify-center py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
+          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
             activeTab === 'bakers'
               ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
               : 'text-theme-muted hover:text-theme-main'
           }`}
         >
-          <Croissant className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 shrink-0" />
-          <span className="truncate">Padeiro</span>
+          <Croissant className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
+          <span className="text-[10px] sm:text-xs">Chef</span>
         </button>
 
         <button
           onClick={() => setActiveTab('catalog')}
-          className={`flex items-center justify-center py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
+          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
             activeTab === 'catalog'
               ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
               : 'text-theme-muted hover:text-theme-main'
           }`}
         >
-          <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 shrink-0" />
-          <span className="truncate">Receitas</span>
+          <BookOpen className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
+          <span className="text-[10px] sm:text-xs">Receitas</span>
         </button>
 
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex items-center justify-center py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
+          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
             activeTab === 'settings'
               ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
               : 'text-theme-muted hover:text-theme-main'
           }`}
           title="Configurações & Backup"
         >
-          <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 shrink-0" />
-          <span className="truncate">Ajustes</span>
+          <Settings className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
+          <span className="text-[10px] sm:text-xs">Ajustes</span>
         </button>
       </nav>
     </header>
