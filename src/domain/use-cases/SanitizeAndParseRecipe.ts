@@ -2,6 +2,7 @@ import '@magrinj/parse-ingredients/locale/pt';
 import parse from '@magrinj/parse-ingredients';
 import { Recipe, RecipeIngredient, UnitType, IngredientCategory } from '../schemas/recipe.schema.js';
 import { ConvertUnitsUseCase } from './ConvertUnits.js';
+import { generateId } from '../../utils/id.js';
 import { CalculateBakersPercentageUseCase } from './CalculateBakersPercentage.js';
 
 export interface ParseRecipeResult {
@@ -169,8 +170,8 @@ export class SanitizeAndParseRecipeUseCase {
           const conversion = ConvertUnitsUseCase.execute(parsed.ingredient, rawAmount, unit);
 
           ingredients.push({
-            // Fix #8: crypto.randomUUID() em vez de índice sequencial [CWE-330]
-            id: `ing-${crypto.randomUUID()}`,
+            // generateId: cascata resiliente (UUID → getRandomValues → Date.now) [CWE-330]
+            id: generateId('ing'),
             name: parsed.ingredient.charAt(0).toUpperCase() + parsed.ingredient.slice(1),
             amount: conversion.grams.toNumber(),
             unit: 'g',
@@ -220,8 +221,8 @@ export class SanitizeAndParseRecipeUseCase {
     }
 
     const recipe: Recipe = {
-      // Fix #8: crypto.randomUUID() em vez de Date.now() — previne colisões e enumeração [CWE-330]
-      id: `rec-imported-${crypto.randomUUID()}`,
+      // generateId: cascata resiliente para ID da receita importada [CWE-330]
+      id: generateId('rec-imported'),
       title: title || 'Receita Importada da Internet',
       description: `Importada via parser local (${ingredients.length} ingredientes identificados em gramas).`,
       baseYield: 4,

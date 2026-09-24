@@ -1,4 +1,5 @@
 import { Recipe, RecipeSchema, UnitType } from '../schemas/recipe.schema.js';
+import { generateId } from '../../utils/id.js';
 
 export interface SousChefParseResult {
   recipe: Recipe;
@@ -119,8 +120,8 @@ Regras Inegociáveis:
 
       // Normaliza ID e campos obrigatórios para o RecipeSchema
       const normalizedRecipe: Recipe = {
-        // Fix #8: crypto.randomUUID() em vez de Date.now() — criptograficamente seguro [CWE-330]
-        id: `rec-ai-${crypto.randomUUID()}`,
+        // generateId: cascata UUID → getRandomValues → Date.now (resiliente em HTTP local) [CWE-330]
+        id: generateId('rec-ai'),
         title: parsed.title || 'Receita Extraída por IA',
         description: parsed.description || 'Extraída com precisão pelo Sous-Chef Gemini Flash.',
         baseYield: parsed.baseYield || 4,
@@ -148,8 +149,8 @@ Regras Inegociáveis:
           }
 
           return {
-            // Fix #8: crypto.randomUUID() para IDs de ingredientes [CWE-330]
-            id: `ing-${crypto.randomUUID()}`,
+            // generateId: cascata resiliente para IDs de ingredientes [CWE-330]
+            id: generateId('ing'),
             name: ing.name || ing.ingredient || ing.item || 'Ingrediente',
             amount: typeof ing.amount === 'number' ? ing.amount : parseFloat(ing.amount) || 100,
             unit,

@@ -9,6 +9,7 @@ import { BakersView } from './components/BakersView.js';
 import { RecipesListView } from './components/RecipesListView.js';
 import { SettingsView } from './components/SettingsView.js';
 import { RecipeImporterModal } from './components/RecipeImporterModal.js';
+import { generateId } from './utils/id.js';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('pantry');
@@ -66,8 +67,9 @@ export const App: React.FC = () => {
   };
 
   const handleAddPantryItem = async (name: string, category: any) => {
-    // Fix #8: crypto.randomUUID() em vez de Date.now() — previne colisões e enumeração [CWE-330]
-    const id = 'p-' + crypto.randomUUID();
+    // generateId usa cascata de fallback (UUID → getRandomValues → Date.now) para funcionar
+    // tanto em HTTPS quanto em HTTP de rede local (http://192.168.x.x) [CWE-330 / src/utils/id.ts]
+    const id = generateId('p');
     await db.pantry.put({
       id,
       name,
