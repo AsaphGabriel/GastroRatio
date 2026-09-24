@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Recipe } from '../domain/schemas/recipe.schema.js';
 import { SanitizeAndParseRecipeUseCase } from '../domain/use-cases/SanitizeAndParseRecipe.js';
+import { FetchRecipeFromUrlUseCase } from '../domain/use-cases/FetchRecipeFromUrl.js';
 import { GeminiSousChefAdapter } from '../domain/use-cases/GeminiSousChefAdapter.js';
 import { X, Sparkles, Zap, AlertCircle, Save } from 'lucide-react';
 
@@ -20,41 +21,59 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
   const [confidence, setConfidence] = useState<number>(0);
   const [source, setSource] = useState<'local' | 'ai'>('local');
   const [isLoadingAi, setIsLoadingAi] = useState(false);
+  const [isLoadingLocal, setIsLoadingLocal] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [warningMsg, setWarningMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleLocalParse = () => {
+  const handleLocalParse = async () => {
     setErrorMsg(null);
     setWarningMsg(null);
     const sanitizedText = rawText.trim().substring(0, 5000);
     if (!sanitizedText) {
-      setErrorMsg('Cole o texto da receita antes de extrair.');
+      setErrorMsg('Cole o texto ou a URL da receita antes de extrair.');
       return;
     }
 
+    const isUrl = /^(https?:\/\/[^\s]+)$/.test(sanitizedText);
+    
+    setIsLoadingLocal(true);
     try {
-      const result = SanitizeAndParseRecipeUseCase.execute(sanitizedText);
+      let result;
+      if (isUrl) {
+        result = await FetchRecipeFromUrlUseCase.execute(sanitizedText);
+      } else {
+        result = SanitizeAndParseRecipeUseCase.execute(sanitizedText);
+      }
       setParsedRecipe(result.recipe);
       setConfidence(result.confidence);
       setSource('local');
     } catch (err: any) {
       setErrorMsg(err.message || 'Erro ao processar receita localmente.');
+    } finally {
+      setIsLoadingLocal(false);
     }
   };
 
   const handleAiParse = async () => {
     setErrorMsg(null);
     setWarningMsg(null);
-    const sanitizedText = rawText.trim().substring(0, 5000);
+    let sanitizedText = rawText.trim().substring(0, 5000);
     if (!sanitizedText) {
-      setErrorMsg('Cole o texto da receita antes de refinar com IA.');
+      setErrorMsg('Cole o texto ou a URL da receita antes de refinar com IA.');
       return;
     }
 
+    const isUrl = /^(https?:\/\/[^\s]+)$/.test(sanitizedText);
+
     setIsLoadingAi(true);
     try {
+      if (isUrl) {
+        // Se for URL, primeiro extraímos o texto via proxy/JSON-LD, e depois passamos pra IA melhorar
+        sanitizedText = await FetchRecipeFromUrlUseCase.extractRawTextFromUrl(sanitizedText);
+      }
+      
       const result = await GeminiSousChefAdapter.parseChaoticRecipe(sanitizedText);
       setParsedRecipe(result.recipe);
       setConfidence(1.0);
@@ -107,10 +126,10 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
             </div>
             <div className="min-w-0">
               <h2 className="text-sm sm:text-base font-bold text-theme-main truncate">
-                Importar Receita da Internet
+                Importar Receita
               </h2>
               <p className="text-[11px] sm:text-xs text-theme-muted truncate">
-                Cole o texto bruto de qualquer blog ou site culinário
+                Cole um link (TudoGostoso/Panelinha) ou o texto bruto
               </p>
             </div>
           </div>
@@ -140,14 +159,14 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
           {/* Área de Colagem */}
           <div>
             <label className="text-xs text-theme-main font-bold block mb-1.5">
-              Texto da Receita:
+              Link ou Texto da Receita:
             </label>
             <textarea
               rows={5}
               maxLength={5000}
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              placeholder="Cole aqui a receita (máx 5000 caracteres)"
+              placeholder="Cole aqui a URL do site ou texto (máx 5000 caracteres)"
               className="w-full bg-theme-card-subtle border border-theme-subtle rounded-2xl p-3.5 text-xs text-theme-main placeholder:text-theme-dim focus:outline-none focus:border-theme-brand font-mono leading-relaxed transition resize-none"
             />
           </div>
@@ -156,10 +175,11 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
           <div className="flex flex-col sm:flex-row items-center gap-2">
             <button
               onClick={handleLocalParse}
-              className="w-full sm:flex-1 bg-theme-brand hover:opacity-90 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center transition touch-target"
+              disabled={isLoadingLocal || isLoadingAi}
+              className="w-full sm:flex-1 bg-theme-brand hover:opacity-90 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center transition touch-target disabled:opacity-50"
             >
               <Zap className="w-4 h-4 mr-1.5 shrink-0" />
-              Extrair Instantâneo (Offline / 0ms)
+              {isLoadingLocal ? 'Extraindo...' : 'Extrair Instantâneo (Offline / 0ms)'}
             </button>
 
             <button
