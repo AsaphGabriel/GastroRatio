@@ -1,0 +1,19 @@
+{
+  "name": "gastroratio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "tsx --test src/**/*.test.ts",
+    "simulate": "tsx src/domain/simulation/run-simulation.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.5",
+    "tsx": "^4.23.15",
+    "typescript": "^5.6.2"
+  }
+}
