@@ -21,11 +21,13 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
   const [source, setSource] = useState<'local' | 'ai'>('local');
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [warningMsg, setWarningMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleLocalParse = () => {
     setErrorMsg(null);
+    setWarningMsg(null);
     const sanitizedText = rawText.trim().substring(0, 5000);
     if (!sanitizedText) {
       setErrorMsg('Cole o texto da receita antes de extrair.');
@@ -44,6 +46,7 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
 
   const handleAiParse = async () => {
     setErrorMsg(null);
+    setWarningMsg(null);
     const sanitizedText = rawText.trim().substring(0, 5000);
     if (!sanitizedText) {
       setErrorMsg('Cole o texto da receita antes de refinar com IA.');
@@ -57,7 +60,18 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
       setConfidence(1.0);
       setSource('ai');
     } catch (err: any) {
-      setErrorMsg(err.message || 'Erro ao consultar Sous-Chef IA.');
+      // Fallback Silencioso: IA falhou (ex: 503), usamos motor local sem travar o app
+      console.warn('API de IA falhou. Acionando fallback offline:', err.message);
+      try {
+        const localResult = SanitizeAndParseRecipeUseCase.execute(sanitizedText);
+        setParsedRecipe(localResult.recipe);
+        setConfidence(localResult.confidence);
+        setSource('local');
+        setWarningMsg('Servidor de IA em alta demanda. Sua receita foi extraída com sucesso pelo motor local offline!');
+      } catch (localErr: any) {
+        // Ambas falharam
+        setErrorMsg('Erro na IA e no motor local: Não foi possível extrair a receita.');
+      }
     } finally {
       setIsLoadingAi(false);
     }
@@ -69,7 +83,16 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
       await onSaveRecipe(parsedRecipe);
       onClose();
     } catch (e: any) {
-      setErrorMsg('Erro de validação (Provavelmente não encontrou ingredientes): ' + e.message);
+      let humanMsg = 'Erro de validação ao salvar.';
+      const errStr = e.message || '';
+      
+      // Tradução semântica dos erros do Zod (Fim do JSON cru)
+      if (errStr.includes('too_small') && errStr.includes('ingredients')) {
+        humanMsg = 'Nenhum ingrediente foi identificado nesta extração. Verifique se o texto ou link colado realmente contém uma lista de ingredientes legível.';
+      } else {
+        humanMsg = `Verifique os campos da receita: ${errStr.substring(0, 80)}...`;
+      }
+      setErrorMsg(humanMsg);
     }
   };
 
@@ -105,6 +128,12 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs flex items-center">
               <AlertCircle className="w-4 h-4 mr-2 shrink-0" />
               <span>{errorMsg}</span>
+            </div>
+          )}
+          {warningMsg && (
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center">
+              <AlertCircle className="w-4 h-4 mr-2 shrink-0" />
+              <span>{warningMsg}</span>
             </div>
           )}
 
