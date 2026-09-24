@@ -7,11 +7,11 @@ export interface SousChefParseResult {
 }
 
 /**
- * Adapter para assistência avançada de IA via Gemini 2.5 Flash (Camada 2 da Cascata).
+ * Adapter para assistência avançada de IA via Gemini 3.6 Flash (Camada 2 da Cascata).
  * Utiliza Structured Outputs e fallback com tratamento detalhado de erros.
  */
 export class GeminiSousChefAdapter {
-  private static readonly API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+  private static readonly API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
 
   /**
    * Parse avançado com IA para textos caóticos ou transcrições de áudio culinárias.
