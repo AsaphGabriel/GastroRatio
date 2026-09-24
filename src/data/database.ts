@@ -35,12 +35,12 @@ export class GastroRatioDatabase extends Dexie {
         }
         await this.recipes.bulkAdd(SEED_CANONICAL_RECIPES);
 
-        // Itens comuns pré-cadastrados na bancada (desmarcados inicialmente)
+        // Itens comuns pré-cadastrados na bancada (todos desmarcados por padrão para experiência limpa)
         const initialPantryItems: PantryItem[] = [
           { id: 'p-frango', name: 'Peito de Frango', category: 'protein', inStock: false },
           { id: 'p-carne-moida', name: 'Carne Moída', category: 'protein', inStock: false },
           { id: 'p-bife', name: 'Bife Bovino', category: 'protein', inStock: false },
-          { id: 'p-ovos', name: 'Ovos', category: 'protein', inStock: true },
+          { id: 'p-ovos', name: 'Ovos', category: 'protein', inStock: false },
           { id: 'p-calabresa', name: 'Linguiça Calabresa', category: 'protein', inStock: false },
           { id: 'p-batata', name: 'Batata', category: 'vegetable', inStock: false },
           { id: 'p-cenoura', name: 'Cenoura', category: 'vegetable', inStock: false },
@@ -50,18 +50,31 @@ export class GastroRatioDatabase extends Dexie {
           { id: 'p-leite', name: 'Leite', category: 'liquid', inStock: false },
           { id: 'p-creme-leite', name: 'Creme de Leite', category: 'dairy', inStock: false },
           { id: 'p-mussarela', name: 'Queijo Mussarela', category: 'dairy', inStock: false },
-          { id: 'p-farinha', name: 'Farinha de Trigo', category: 'flour_grain', inStock: true },
+          { id: 'p-farinha', name: 'Farinha de Trigo', category: 'flour_grain', inStock: false },
           { id: 'p-fuba', name: 'Fubá', category: 'flour_grain', inStock: false },
           { id: 'p-polvilho', name: 'Polvilho Doce', category: 'flour_grain', inStock: false },
-          { id: 'p-arroz', name: 'Arroz Branco', category: 'flour_grain', inStock: true },
-          { id: 'p-feijao', name: 'Feijão Carioca', category: 'flour_grain', inStock: true },
-          { id: 'p-macarrao', name: 'Macarrão', category: 'flour_grain', inStock: true }
+          { id: 'p-arroz', name: 'Arroz Branco', category: 'flour_grain', inStock: false },
+          { id: 'p-feijao', name: 'Feijão Carioca', category: 'flour_grain', inStock: false },
+          { id: 'p-macarrao', name: 'Macarrão', category: 'flour_grain', inStock: false }
         ];
 
         await this.pantry.bulkAdd(initialPantryItems);
 
         // Preferência padrão: Despensa Básica Assumida = ON
         await this.settings.put({ key: 'assume_basic_staples', value: true });
+        await this.settings.put({ key: 'pantry_clean_default_v3', value: true });
+      } else {
+        // Migração para limpar seleções prévias indesejadas em bancos locais existentes
+        const isCleaned = await this.settings.get('pantry_clean_default_v3');
+        if (!isCleaned) {
+          const allItems = await this.pantry.toArray();
+          for (const item of allItems) {
+            if (item.inStock) {
+              await this.pantry.update(item.id, { inStock: false });
+            }
+          }
+          await this.settings.put({ key: 'pantry_clean_default_v3', value: true });
+        }
       }
     });
   }
@@ -83,6 +96,34 @@ export class GastroRatioDatabase extends Dexie {
     await this.transaction('rw', [this.recipes, this.pantry], async () => {
       await this.recipes.clear();
       await this.recipes.bulkAdd(SEED_CANONICAL_RECIPES);
+    });
+  }
+
+  /**
+   * Desmarca todos os itens da bancada de uma só vez (Experiência limpa).
+   */
+  async clearAllPantryStock(): Promise<void> {
+    await this.transaction('rw', this.pantry, async () => {
+      const all = await this.pantry.toArray();
+      for (const item of all) {
+        if (item.inStock) {
+          await this.pantry.update(item.id, { inStock: false });
+        }
+      }
+    });
+  }
+
+  /**
+   * Marca todos os itens da bancada.
+   */
+  async selectAllPantryStock(): Promise<void> {
+    await this.transaction('rw', this.pantry, async () => {
+      const all = await this.pantry.toArray();
+      for (const item of all) {
+        if (!item.inStock) {
+          await this.pantry.update(item.id, { inStock: true });
+        }
+      }
     });
   }
 }

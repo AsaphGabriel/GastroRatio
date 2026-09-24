@@ -64,20 +64,20 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
   }, [calculatedIngredients]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-      {/* Seletor de Receita de Panificação */}
-      <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5">
-        <div className="flex items-center justify-between flex-wrap gap-2">
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      {/* 1. Seletor de Receita de Panificação */}
+      <div className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 card-shadow space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
               <Croissant className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-white flex items-center">
+              <h1 className="text-base sm:text-lg font-bold text-theme-main flex items-center">
                 Módulo Padeiro (Baker's Percentage)
               </h1>
-              <p className="text-xs text-slate-400">
-                Invariante matemática: Farinha é rigorosamente 100%. Todos os outros pesos derivam dela.
+              <p className="text-xs text-theme-muted mt-0.5">
+                Invariante: Farinha = 100%. Todos os outros pesos derivam dela.
               </p>
             </div>
           </div>
@@ -93,7 +93,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                 setTargetDoughInput(calc.totalDoughGrams.toNumber());
               }
             }}
-            className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+            className="bg-theme-card-subtle border border-theme-subtle rounded-xl px-3 py-2 text-xs text-theme-main focus:outline-none focus:border-amber-500 font-semibold"
           >
             {bakingRecipes.map((r) => (
               <option key={r.id} value={r.id}>
@@ -103,51 +103,51 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
           </select>
         </div>
 
-        {/* Indicador de Hidratação */}
+        {/* Indicador de Hidratação e Alternador de Ajuste */}
         {baseBakersCalc && (
-          <div className="mt-5 pt-4 border-t border-slate-700/60 flex items-center justify-between flex-wrap gap-4">
+          <div className="pt-3 border-t border-theme-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
                 <Droplets className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-xs text-slate-400 block">Taxa de Hidratação:</span>
-                <span className="text-lg font-black text-sky-400 scale-number">
+                <span className="text-xs text-theme-muted block">Taxa de Hidratação:</span>
+                <span className="text-lg font-black text-sky-600 dark:text-sky-400 scale-number">
                   {baseBakersCalc.hydrationPercentage.format()}
                 </span>
               </div>
             </div>
 
-            {/* Alternador de Ajuste: Por Farinha Alvo vs Por Massa Final */}
-            <div className="flex items-center bg-slate-900 border border-slate-700 rounded-xl p-1">
+            {/* Alternador: Por Farinha Total vs Por Massa Final */}
+            <div className="flex items-center bg-theme-card-subtle border border-theme-subtle rounded-xl p-1 self-start sm:self-auto">
               <button
                 onClick={() => setAdjustMode('flour')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition touch-target ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition touch-target ${
                   adjustMode === 'flour'
-                    ? 'bg-amber-600 text-white shadow'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-amber-600 text-white shadow-sm'
+                    : 'text-theme-muted hover:text-theme-main'
                 }`}
               >
-                Ajustar Farinha Total
+                Por Farinha Alvo
               </button>
               <button
                 onClick={() => setAdjustMode('dough')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition touch-target ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition touch-target ${
                   adjustMode === 'dough'
-                    ? 'bg-amber-600 text-white shadow'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-amber-600 text-white shadow-sm'
+                    : 'text-theme-muted hover:text-theme-main'
                 }`}
               >
-                Ajustar Peso da Massa
+                Por Peso da Massa
               </button>
             </div>
           </div>
         )}
 
         {/* Controles de Peso */}
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className={`p-3 rounded-xl border transition ${adjustMode === 'flour' ? 'bg-amber-950/20 border-amber-500/50' : 'bg-slate-900/40 border-slate-800'}`}>
-            <span className="text-[11px] text-slate-400 block mb-1">Farinha Total (Base 100%):</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className={`p-3.5 rounded-xl border transition ${adjustMode === 'flour' ? 'bg-amber-500/10 border-amber-500/50' : 'bg-theme-card-subtle border-theme-subtle'}`}>
+            <span className="text-[11px] text-theme-muted font-semibold block mb-1">Farinha Total (Base 100%):</span>
             <div className="flex items-center">
               <input
                 type="number"
@@ -157,14 +157,14 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                   setAdjustMode('flour');
                   setTargetFlourInput(parseFloat(e.target.value) || 0);
                 }}
-                className="w-full bg-transparent text-xl font-black text-amber-400 focus:outline-none scale-number"
+                className="w-full bg-transparent text-xl font-black text-amber-600 dark:text-amber-400 focus:outline-none scale-number"
               />
-              <span className="text-xs text-slate-400 font-bold ml-1">g</span>
+              <span className="text-xs text-theme-dim font-bold ml-1">g</span>
             </div>
           </div>
 
-          <div className={`p-3 rounded-xl border transition ${adjustMode === 'dough' ? 'bg-amber-950/20 border-amber-500/50' : 'bg-slate-900/40 border-slate-800'}`}>
-            <span className="text-[11px] text-slate-400 block mb-1">Massa Total Final Calculada:</span>
+          <div className={`p-3.5 rounded-xl border transition ${adjustMode === 'dough' ? 'bg-amber-500/10 border-amber-500/50' : 'bg-theme-card-subtle border-theme-subtle'}`}>
+            <span className="text-[11px] text-theme-muted font-semibold block mb-1">Massa Total Final Calculada:</span>
             <div className="flex items-center">
               <input
                 type="number"
@@ -174,20 +174,20 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                   setAdjustMode('dough');
                   setTargetDoughInput(parseFloat(e.target.value) || 0);
                 }}
-                className="w-full bg-transparent text-xl font-black text-emerald-400 focus:outline-none scale-number"
+                className="w-full bg-transparent text-xl font-black text-emerald-600 dark:text-emerald-400 focus:outline-none scale-number"
               />
-              <span className="text-xs text-slate-400 font-bold ml-1">g</span>
+              <span className="text-xs text-theme-dim font-bold ml-1">g</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabela de Fórmula de Panificação */}
-      <section className="bg-slate-800/60 border border-slate-800 rounded-2xl p-5 space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
+      {/* 2. Tabela de Fórmula de Panificação */}
+      <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-3 card-shadow">
+        <div className="flex items-center justify-between pb-2 border-b border-theme-subtle flex-wrap gap-2">
           <div>
-            <h2 className="text-base font-bold text-white">Fórmula de Padeiro Recalculada</h2>
-            <p className="text-xs text-slate-400">Proporções fixadas na base da farinha:</p>
+            <h2 className="text-sm sm:text-base font-bold text-theme-main">Fórmula de Padeiro Recalculada</h2>
+            <p className="text-[11px] sm:text-xs text-theme-muted">Proporções fixadas na base de farinha:</p>
           </div>
           {selectedRecipe && (
             <button
@@ -198,7 +198,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                 };
                 onSelectForScale(scaledRecipe);
               }}
-              className="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow transition touch-target flex items-center"
+              className="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center"
             >
               <Scale className="w-3.5 h-3.5 mr-1.5" />
               Pesar na Balança →
@@ -206,37 +206,37 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
           )}
         </div>
 
-        <div className="divide-y divide-slate-800">
+        <div className="divide-y divide-theme-subtle">
           {calculatedIngredients.map((ing) => {
             const isFlour = ing.category === 'flour_grain' || ing.name.toLowerCase().includes('farinha') || ing.name.toLowerCase().includes('polvilho');
             return (
-              <div key={ing.id} className="py-3 flex items-center justify-between">
-                <div>
+              <div key={ing.id} className="py-2.5 sm:py-3 flex items-center justify-between gap-2">
+                <div className="min-w-0">
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm font-semibold text-white">{ing.name}</span>
+                    <span className="text-xs sm:text-sm font-bold text-theme-main truncate">{ing.name}</span>
                     {isFlour && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 font-bold shrink-0">
                         Base 100%
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-4 sm:space-x-6 shrink-0">
                   {/* Baker's % */}
-                  <div className="text-right w-16">
-                    <span className="text-xs font-bold text-amber-400 scale-number">
+                  <div className="text-right w-14 sm:w-16">
+                    <span className="text-xs font-black text-amber-600 dark:text-amber-400 scale-number">
                       {ing.bakersPercentage ? `${ing.bakersPercentage}%` : '-'}
                     </span>
-                    <span className="text-[10px] text-slate-500 block">Baker %</span>
+                    <span className="text-[10px] text-theme-dim block leading-none">Baker %</span>
                   </div>
 
                   {/* Peso em gramas */}
-                  <div className="text-right w-20">
-                    <span className="text-base font-black text-white scale-number">
+                  <div className="text-right w-16 sm:w-20">
+                    <span className="text-sm sm:text-base font-black text-theme-main scale-number">
                       {ing.amount}
                     </span>
-                    <span className="text-xs text-slate-400 ml-1 font-medium">{ing.unit}</span>
+                    <span className="text-xs text-theme-dim ml-1 font-bold">{ing.unit}</span>
                   </div>
                 </div>
               </div>

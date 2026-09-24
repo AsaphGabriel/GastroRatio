@@ -1,7 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { Recipe, PantryItem } from '../domain/schemas/recipe.schema.js';
 import { FindRecipesByPantryUseCase } from '../domain/use-cases/FindRecipesByPantry.js';
-import { Check, Plus, Sparkles, AlertCircle, Clock, ChefHat, ShieldCheck } from 'lucide-react';
+import {
+  Check,
+  Plus,
+  Sparkles,
+  AlertCircle,
+  Clock,
+  ChefHat,
+  ShieldCheck,
+  RotateCcw,
+  CheckCheck
+} from 'lucide-react';
 
 interface PantryViewProps {
   recipes: Recipe[];
@@ -11,6 +21,8 @@ interface PantryViewProps {
   assumeBasicStaples: boolean;
   onToggleAssumeStaples: (val: boolean) => void;
   onSelectRecipeForScale: (recipe: Recipe) => void;
+  onClearPantry?: () => void;
+  onSelectAllPantry?: () => void;
 }
 
 export const PantryView: React.FC<PantryViewProps> = ({
@@ -20,12 +32,14 @@ export const PantryView: React.FC<PantryViewProps> = ({
   onAddPantryItem,
   assumeBasicStaples,
   onToggleAssumeStaples,
-  onSelectRecipeForScale
+  onSelectRecipeForScale,
+  onClearPantry,
+  onSelectAllPantry
 }) => {
   const [newItemName, setNewItemName] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
 
-  // Ingredientes atualmente marcados como disponíveis
+  // Ingredientes atualmente marcados como disponíveis na bancada
   const activeAvailableNames = useMemo(() => {
     return pantryItems.filter((i) => i.inStock).map((i) => i.name);
   }, [pantryItems]);
@@ -56,85 +70,118 @@ export const PantryView: React.FC<PantryViewProps> = ({
   }, [pantryItems, selectedCategoryFilter]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-      {/* Axioma da Despensa Básica (Toggle de Destaque) */}
-      <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      {/* 1. Axioma da Despensa Básica Assumida */}
+      <div className="bg-theme-card border border-theme-subtle rounded-2xl p-4 card-shadow transition-colors">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-start space-x-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <div>
-              <h2 className="text-sm font-semibold text-white flex items-center">
-                Axioma da Despensa Básica Assumida
+            <div className="min-w-0">
+              <h2 className="text-xs sm:text-sm font-bold text-theme-main flex items-center">
+                Axioma da Despensa Básica
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Assume que você já tem sal, óleo, alho, cebola, açúcar e vinagre. Zero burocracia de cadastro.
+              <p className="text-[11px] sm:text-xs text-theme-muted mt-0.5 leading-snug">
+                Assume que você já possui sal, óleo, alho, cebola, açúcar e vinagre. Zero fricção de cadastro.
               </p>
             </div>
           </div>
 
-          <label className="relative inline-flex items-center cursor-pointer shrink-0 ml-4 touch-target">
+          <label className="relative inline-flex items-center cursor-pointer shrink-0 touch-target" title="Alternar premissa da despensa básica">
             <input
               type="checkbox"
               checked={assumeBasicStaples}
               onChange={(e) => onToggleAssumeStaples(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            <div className="w-11 h-6 bg-theme-card-subtle peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600 border border-theme-subtle"></div>
           </label>
         </div>
       </div>
 
-      {/* Bancada de Perecíveis (Chips com Lei de Fitts) */}
-      <section className="bg-slate-800/50 border border-slate-800 rounded-2xl p-5 space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-2">
+      {/* 2. Bancada de Perecíveis (Chips com Lei de Fitts e Ações Rápidas) */}
+      <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-4 card-shadow transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-theme-subtle">
           <div>
-            <h2 className="text-base font-bold text-white flex items-center">
-              <ChefHat className="w-4 h-4 mr-2 text-brand-500" />
+            <h2 className="text-sm sm:text-base font-bold text-theme-main flex items-center">
+              <ChefHat className="w-4 h-4 mr-2 text-theme-brand shrink-0" />
               O Que Tem na Geladeira e Armário Hoje?
             </h2>
-            <p className="text-xs text-slate-400">Toque para marcar os itens disponíveis agora:</p>
+            <p className="text-[11px] sm:text-xs text-theme-muted mt-0.5">
+              Toque para marcar apenas o que você tem disponível agora:
+            </p>
           </div>
 
-          {/* Filtros de Categoria */}
-          <div className="flex space-x-1 overflow-x-auto pb-1">
-            {categories.map((cat) => (
+          {/* Contador e Ações Rápidas de Limpeza */}
+          <div className="flex items-center space-x-2 self-start sm:self-auto flex-wrap gap-1.5">
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-theme-card-subtle text-theme-main border border-theme-subtle">
+              {activeAvailableNames.length} marcados
+            </span>
+
+            {onClearPantry && activeAvailableNames.length > 0 && (
               <button
-                key={cat.id}
-                onClick={() => setSelectedCategoryFilter(cat.id)}
-                className={`text-xs px-3 py-1.5 rounded-lg transition ${
-                  selectedCategoryFilter === cat.id
-                    ? 'bg-brand-600 text-white font-medium'
-                    : 'bg-slate-800 text-slate-400 hover:text-slate-200'
-                }`}
+                type="button"
+                onClick={onClearPantry}
+                className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center transition touch-target"
+                title="Desmarcar todos os itens da bancada"
               >
-                {cat.label}
+                <RotateCcw className="w-3 h-3 mr-1" />
+                Limpar
               </button>
-            ))}
+            )}
+
+            {onSelectAllPantry && activeAvailableNames.length === 0 && (
+              <button
+                type="button"
+                onClick={onSelectAllPantry}
+                className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-theme-card-subtle hover:bg-theme-card border border-theme-subtle text-theme-muted flex items-center transition touch-target"
+                title="Marcar todos os itens comuns para teste rápido"
+              >
+                <CheckCheck className="w-3 h-3 mr-1" />
+                Marcar Todos
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Grade de Chips de Toque Largo (mínimo 48px de altura) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+        {/* Filtros de Categoria em Scroll Suave */}
+        <div className="flex space-x-1.5 overflow-x-auto pb-1 no-scrollbar">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategoryFilter(cat.id)}
+              className={`text-xs px-3 py-1.5 rounded-xl transition whitespace-nowrap font-medium touch-target ${
+                selectedCategoryFilter === cat.id
+                  ? 'bg-theme-brand text-white shadow-sm'
+                  : 'bg-theme-card-subtle text-theme-muted hover:text-theme-main border border-theme-subtle'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Grade de Chips de Toque Amplo (min-h-[44px]) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5">
           {filteredPantryItems.map((item) => {
             const isChecked = item.inStock;
             return (
               <button
                 key={item.id}
                 onClick={() => onTogglePantryItem(item)}
-                className={`flex items-center justify-between p-3 rounded-xl border text-left transition select-none touch-target ${
+                className={`flex items-center justify-between p-2.5 sm:p-3 rounded-xl border text-left transition select-none touch-target ${
                   isChecked
-                    ? 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200 font-medium shadow-sm'
-                    : 'bg-slate-800/80 border-slate-700/60 text-slate-300 hover:border-slate-600'
+                    ? 'bg-theme-brand-subtle border-theme-brand text-theme-brand-text font-bold shadow-sm'
+                    : 'bg-theme-card hover:bg-theme-card-hover border-theme-subtle text-theme-main'
                 }`}
               >
-                <span className="text-xs truncate mr-2">{item.name}</span>
+                <span className="text-xs truncate mr-1.5">{item.name}</span>
                 <div
-                  className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border transition ${
+                  className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border transition ${
                     isChecked
-                      ? 'bg-emerald-500 border-emerald-400 text-slate-950'
-                      : 'border-slate-600 bg-slate-700/50'
+                      ? 'bg-theme-brand border-theme-brand text-white'
+                      : 'border-theme-strong bg-theme-card-subtle'
                   }`}
                 >
                   {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -145,65 +192,76 @@ export const PantryView: React.FC<PantryViewProps> = ({
         </div>
 
         {/* Input Rápido para Insumos Extras */}
-        <form onSubmit={handleAddSubmit} className="flex gap-2 pt-2">
+        <form onSubmit={handleAddSubmit} className="flex gap-2 pt-1">
           <input
             type="text"
             value={newItemName}
             onChange={(e) => setNewItemName(e.target.value)}
-            placeholder="+ Adicionar outro ingrediente perecível..."
-            className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+            placeholder="+ Adicionar outro ingrediente (ex: Espinafre, Bacon)..."
+            className="flex-1 bg-theme-card-subtle border border-theme-subtle rounded-xl px-3.5 py-2.5 text-xs text-theme-main placeholder:text-theme-dim focus:outline-none focus:border-theme-brand transition"
           />
           <button
             type="submit"
-            className="bg-slate-700 hover:bg-slate-600 text-slate-100 px-4 py-2.5 rounded-xl text-xs font-medium flex items-center touch-target"
+            className="bg-theme-card border border-theme-strong hover:bg-theme-card-hover text-theme-main px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center transition shadow-sm touch-target"
           >
-            <Plus className="w-4 h-4 mr-1" />
+            <Plus className="w-4 h-4 mr-1 shrink-0" />
             Adicionar
           </button>
         </form>
       </section>
 
-      {/* Resultados em Tempo Real: O que Cozinhar Agora */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-white flex items-center">
-            <Sparkles className="w-4 h-4 mr-2 text-amber-400" />
-            Sugestões para Agora ({searchResults.readyToCook.length} prontas)
+      {/* 3. Resultados em Tempo Real: Sugestões Culinárias */}
+      <section className="space-y-3 sm:space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h2 className="text-sm sm:text-base font-bold text-theme-main flex items-center">
+            <Sparkles className="w-4 h-4 mr-2 text-amber-500 shrink-0" />
+            Sugestões com a sua Bancada ({searchResults.readyToCook.length} prontas)
           </h2>
-          <span className="text-xs text-slate-400">
-            {activeAvailableNames.length} itens marcados
+          <span className="text-xs text-theme-dim">
+            {activeAvailableNames.length} {activeAvailableNames.length === 1 ? 'item selecionado' : 'itens selecionados'}
           </span>
         </div>
 
-        {/* 1. Receitas Prontas para Cozinhar (100% Viáveis) */}
-        {searchResults.readyToCook.length > 0 ? (
+        {/* Estado Vazio: Nenhuma seleção feita */}
+        {activeAvailableNames.length === 0 ? (
+          <div className="bg-theme-card border border-dashed border-theme-strong rounded-2xl p-6 sm:p-8 text-center space-y-2 card-shadow">
+            <div className="w-12 h-12 rounded-2xl bg-theme-brand-subtle text-theme-brand flex items-center justify-center mx-auto">
+              <ChefHat className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-bold text-theme-main">Bancada Limpa! O que você tem na cozinha?</h3>
+            <p className="text-xs text-theme-muted max-w-md mx-auto leading-relaxed">
+              Marque os ingredientes na grade acima (ex: <strong>Ovos</strong>, <strong>Tomate</strong>, <strong>Queijo</strong> ou <strong>Peito de Frango</strong>) para o GastroRatio encontrar receitas deliciosas que você pode preparar sem desperdício.
+            </p>
+          </div>
+        ) : searchResults.readyToCook.length > 0 ? (
+          /* Receitas 100% Viáveis */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {searchResults.readyToCook.map(({ recipe }) => (
               <div
                 key={recipe.id}
-                className="bg-slate-800/90 border border-emerald-500/40 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-emerald-400 transition"
+                className="bg-theme-card border-2 border-emerald-500/50 rounded-2xl p-4 flex flex-col justify-between space-y-3 card-shadow hover:border-emerald-500 transition"
               >
                 <div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold uppercase tracking-wider">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold uppercase tracking-wider">
                       Possível Agora
                     </span>
-                    <div className="flex items-center text-xs text-slate-400">
-                      <Clock className="w-3.5 h-3.5 mr-1" />
+                    <div className="flex items-center text-xs text-theme-muted">
+                      <Clock className="w-3.5 h-3.5 mr-1 text-theme-dim" />
                       <span>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} min</span>
                     </div>
                   </div>
-                  <h3 className="text-base font-bold text-white mt-1.5">{recipe.title}</h3>
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">{recipe.description}</p>
+                  <h3 className="text-base font-bold text-theme-main mt-1.5">{recipe.title}</h3>
+                  <p className="text-xs text-theme-muted mt-1 line-clamp-2 leading-relaxed">{recipe.description}</p>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-700/60">
-                  <span className="text-xs text-slate-400">
-                    Rendimento: {recipe.baseYield} {recipe.yieldUnit}
+                <div className="flex items-center justify-between pt-2.5 border-t border-theme-subtle">
+                  <span className="text-xs text-theme-muted">
+                    Rendimento: <strong>{recipe.baseYield}</strong> {recipe.yieldUnit}
                   </span>
                   <button
                     onClick={() => onSelectRecipeForScale(recipe)}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow transition touch-target flex items-center"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center"
                   >
                     Abrir na Balança →
                   </button>
@@ -212,17 +270,19 @@ export const PantryView: React.FC<PantryViewProps> = ({
             ))}
           </div>
         ) : (
-          <div className="bg-slate-800/40 border border-dashed border-slate-700 rounded-2xl p-6 text-center text-slate-400 text-xs">
-            Nenhuma receita 100% pronta com os itens selecionados. Marque mais itens acima ou veja as que falta apenas 1 ingrediente abaixo.
+          /* Nenhum prato 100% pronto com a combinação atual */
+          <div className="bg-theme-card border border-theme-subtle rounded-2xl p-5 text-center text-theme-muted text-xs space-y-1">
+            <p className="font-semibold text-theme-main">Nenhuma receita 100% pronta apenas com estes itens.</p>
+            <p>Selecione mais itens na bancada acima ou confira abaixo os pratos onde falta apenas 1 ingrediente.</p>
           </div>
         )}
 
-        {/* 2. Receitas que falta apenas 1 ingrediente */}
+        {/* 4. Receitas onde falta apenas 1 ingrediente */}
         {searchResults.missingOneIngredient.length > 0 && (
-          <div className="space-y-3 pt-4">
-            <h3 className="text-sm font-semibold text-amber-300 flex items-center">
-              <AlertCircle className="w-4 h-4 mr-1.5" />
-              Falta Apenas 1 Ingrediente ({searchResults.missingOneIngredient.length} receitas)
+          <div className="space-y-3 pt-2">
+            <h3 className="text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-300 flex items-center">
+              <AlertCircle className="w-4 h-4 mr-1.5 shrink-0" />
+              Falta Apenas 1 Ingrediente ({searchResults.missingOneIngredient.length} opções)
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -231,23 +291,23 @@ export const PantryView: React.FC<PantryViewProps> = ({
                 return (
                   <div
                     key={recipe.id}
-                    className="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between space-y-3"
+                    className="bg-theme-card border border-theme-subtle rounded-2xl p-4 flex flex-col justify-between space-y-3 card-shadow"
                   >
                     <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-medium">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 font-semibold">
                           Falta: {missing.name}
                         </span>
-                        <div className="flex items-center text-xs text-slate-400">
-                          <Clock className="w-3.5 h-3.5 mr-1" />
+                        <div className="flex items-center text-xs text-theme-muted">
+                          <Clock className="w-3.5 h-3.5 mr-1 text-theme-dim" />
                           <span>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} min</span>
                         </div>
                       </div>
-                      <h4 className="text-sm font-bold text-white mt-1.5">{recipe.title}</h4>
-                      <p className="text-xs text-slate-400 mt-1 line-clamp-1">{recipe.description}</p>
+                      <h4 className="text-sm font-bold text-theme-main mt-1.5">{recipe.title}</h4>
+                      <p className="text-xs text-theme-muted mt-1 line-clamp-1">{recipe.description}</p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-700/40">
+                    <div className="flex items-center justify-between pt-2 border-t border-theme-subtle">
                       <button
                         onClick={() => {
                           const existing = pantryItems.find((p) => p.name.toLowerCase() === missing.name.toLowerCase());
@@ -257,7 +317,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
                             onAddPantryItem(missing.name, missing.category);
                           }
                         }}
-                        className="text-xs text-emerald-400 hover:text-emerald-300 font-medium flex items-center"
+                        className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center touch-target"
                       >
                         <Plus className="w-3 h-3 mr-1" />
                         Tenho {missing.name}!
@@ -265,7 +325,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
 
                       <button
                         onClick={() => onSelectRecipeForScale(recipe)}
-                        className="text-xs text-slate-300 hover:text-white font-medium underline"
+                        className="text-xs text-theme-muted hover:text-theme-main font-semibold underline"
                       >
                         Ver Detalhes
                       </button>

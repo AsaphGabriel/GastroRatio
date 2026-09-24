@@ -17,7 +17,28 @@ export const App: React.FC = () => {
   const [isDbReady, setIsDbReady] = useState(false);
   const [isImporterOpen, setIsImporterOpen] = useState(false);
 
-  // Inicialização do IndexedDB com Carga Semente (Fase 2)
+  // Sistema de Tema Duplo: Claro (Bege Culinário / Terracota) vs Escuro (Midnight Slate)
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('gastroratio_theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return 'light'; // Padrão: Bege Culinário Moderno
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('gastroratio_theme', theme);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // Inicialização do IndexedDB com Carga Semente
   useEffect(() => {
     db.initializeDatabase()
       .then(async () => {
@@ -54,6 +75,14 @@ export const App: React.FC = () => {
     });
   };
 
+  const handleClearPantry = async () => {
+    await db.clearAllPantryStock();
+  };
+
+  const handleSelectAllPantry = async () => {
+    await db.selectAllPantryStock();
+  };
+
   const handleToggleAssumeStaples = async (val: boolean) => {
     setAssumeBasicStaples(val);
     await db.settings.put({ key: 'assume_basic_staples', value: val });
@@ -84,19 +113,21 @@ export const App: React.FC = () => {
 
   if (!isDbReady) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-400 text-xs">
+      <div className="min-h-screen bg-theme-app flex items-center justify-center text-theme-muted text-xs font-semibold">
         Inicializando GastroRatio (IndexedDB)...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col selection:bg-brand-500 selection:text-slate-950 pb-12">
+    <div className="min-h-screen bg-theme-app text-theme-main flex flex-col selection:bg-orange-500 selection:text-white pb-12 transition-colors duration-200">
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         hasSelectedRecipe={!!selectedRecipe}
         onOpenImporter={() => setIsImporterOpen(true)}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       <main className="flex-1">
@@ -109,6 +140,8 @@ export const App: React.FC = () => {
             assumeBasicStaples={assumeBasicStaples}
             onToggleAssumeStaples={handleToggleAssumeStaples}
             onSelectRecipeForScale={handleSelectRecipeForScale}
+            onClearPantry={handleClearPantry}
+            onSelectAllPantry={handleSelectAllPantry}
           />
         )}
 

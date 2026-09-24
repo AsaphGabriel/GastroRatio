@@ -64,54 +64,54 @@ export const SettingsView: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-      <div className="border-b border-slate-800 pb-3">
-        <h1 className="text-xl font-bold text-white">Configurações & Privacidade</h1>
-        <p className="text-xs text-slate-400">
-          Governança Local-First, chaves de inteligência artificial e persistência física.
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <div className="border-b border-theme-subtle pb-3">
+        <h1 className="text-lg sm:text-xl font-black text-theme-main">Configurações & Privacidade</h1>
+        <p className="text-xs text-theme-muted mt-0.5">
+          Arquitetura Local-First, controle de IA e persistência soberana no cliente.
         </p>
       </div>
 
       {/* Assistente de IA: Gemini Flash (BYOK) */}
-      <section className="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 space-y-3">
+      <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-3.5 card-shadow">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-theme-brand-subtle text-theme-brand flex items-center justify-center shrink-0">
             <Key className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white">Chave de IA Gemini (BYOK — Opcional)</h2>
-            <p className="text-xs text-slate-400">
-              Utilizada apenas para o assistente de parse de receitas brutas da internet e substituições químicas raras.
+            <h2 className="text-sm sm:text-base font-bold text-theme-main">Chave de IA Gemini (BYOK — Opcional)</h2>
+            <p className="text-xs text-theme-muted">
+              Utilizada apenas para o parse de receitas caóticas da internet. O app funciona 100% offline sem ela.
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSaveApiKey} className="space-y-3 pt-2">
+        <form onSubmit={handleSaveApiKey} className="space-y-3 pt-1">
           <div>
-            <label className="text-xs text-slate-300 font-medium block mb-1">
+            <label className="text-xs text-theme-main font-semibold block mb-1">
               Google Gemini API Key:
             </label>
             <input
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Cole sua chave AIzaSy... (fica salva apenas no navegador)"
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500 font-mono"
+              placeholder="Cole sua chave AIzaSy... (armazenada apenas no seu navegador)"
+              className="w-full bg-theme-card-subtle border border-theme-subtle rounded-xl px-4 py-2.5 text-xs text-theme-main placeholder:text-theme-dim focus:outline-none focus:border-theme-brand font-mono transition"
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] text-slate-500">
-              Deixe em branco para usar o app 100% offline em modo determinístico puro.
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+            <p className="text-[11px] text-theme-dim">
+              Deixe em branco para usar o parser determinístico local em 0ms.
             </p>
             <button
               type="submit"
-              className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center transition touch-target"
+              className="bg-theme-brand hover:opacity-90 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center transition shadow-sm touch-target self-start sm:self-auto"
             >
               {savedSuccess ? (
                 <>
                   <Check className="w-4 h-4 mr-1 text-white" />
-                  Salvo!
+                  Salvo com Sucesso!
                 </>
               ) : (
                 'Salvar Chave'
@@ -122,30 +122,30 @@ export const SettingsView: React.FC = () => {
       </section>
 
       {/* Backup e Exportação Local (IndexedDB) */}
-      <section className="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 space-y-3">
+      <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-3.5 card-shadow">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
             <Database className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white">Persistência Local & Backup</h2>
-            <p className="text-xs text-slate-400">
-              Seus dados residem exclusivamente no armazenamento do seu dispositivo (IndexedDB).
+            <h2 className="text-sm sm:text-base font-bold text-theme-main">Persistência Local & Backup</h2>
+            <p className="text-xs text-theme-muted">
+              Seus cadernos de receitas e bancada residem no banco de dados do seu dispositivo (IndexedDB).
             </p>
           </div>
         </div>
 
-        <div className="pt-2 flex items-center space-x-3 flex-wrap gap-2">
+        <div className="pt-1 flex items-center space-x-2.5 flex-wrap gap-2">
           <button
             onClick={handleExportBackup}
-            className="flex items-center px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-white transition touch-target"
+            className="flex items-center px-4 py-2.5 rounded-xl bg-theme-card border border-theme-subtle hover:bg-theme-card-hover text-xs font-bold text-theme-main transition shadow-sm touch-target"
           >
-            <Download className="w-4 h-4 mr-2 text-sky-400" />
+            <Download className="w-4 h-4 mr-2 text-sky-600 dark:text-sky-400 shrink-0" />
             Exportar Backup JSON
           </button>
 
-          <label className="flex items-center px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-white transition cursor-pointer touch-target">
-            <Upload className="w-4 h-4 mr-2 text-emerald-400" />
+          <label className="flex items-center px-4 py-2.5 rounded-xl bg-theme-card border border-theme-subtle hover:bg-theme-card-hover text-xs font-bold text-theme-main transition cursor-pointer shadow-sm touch-target">
+            <Upload className="w-4 h-4 mr-2 text-emerald-600 dark:text-emerald-400 shrink-0" />
             Restaurar Backup JSON
             <input type="file" accept=".json" onChange={handleImportBackup} className="sr-only" />
           </label>
@@ -153,12 +153,12 @@ export const SettingsView: React.FC = () => {
       </section>
 
       {/* Conformidade e LGPD */}
-      <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex items-start space-x-3.5">
-        <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-        <div className="text-xs text-slate-400 space-y-1">
-          <h3 className="font-semibold text-slate-200">Arquitetura Soberana (Local-First by Design)</h3>
-          <p>
-            O GastroRatio não possui servidores em nuvem para armazenamento de dados, não coleta telemetria e não exige login. Suas receitas e preferências pertencem estritamente a você.
+      <section className="bg-theme-card-subtle border border-theme-subtle rounded-2xl p-4 sm:p-5 flex items-start space-x-3">
+        <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+        <div className="text-xs text-theme-muted space-y-1">
+          <h3 className="font-bold text-theme-main">Privacidade & Soberania por Padrão</h3>
+          <p className="leading-relaxed">
+            O GastroRatio é uma aplicação 100% estática e offline (PWA). Ele não envia seus dados para nenhum servidor em nuvem nem coleta rastreadores.
           </p>
         </div>
       </section>
