@@ -17,7 +17,17 @@ export class GeminiSousChefAdapter {
    * Parse avançado com IA para textos caóticos ou transcrições de áudio culinárias.
    */
   public static async parseChaoticRecipe(rawText: string, apiKey?: string): Promise<SousChefParseResult> {
-    const key = apiKey || localStorage.getItem('gastroratio_gemini_api_key') || '';
+    let key = apiKey;
+    if (!key) {
+      try {
+        const saved = localStorage.getItem('gastroratio_gemini_api_key_v2');
+        if (saved) {
+          key = atob(saved).split('').reverse().join('');
+        }
+      } catch {
+        key = '';
+      }
+    }
 
     if (!key) {
       throw new Error('Chave da API do Gemini não configurada. Vá na aba Configurações para adicionar sua chave ou use a extração offline básica.');
@@ -46,7 +56,8 @@ Regras Inegociáveis:
     };
 
     try {
-      const response = await fetch(`${this.API_ENDPOINT}?key=${encodeURIComponent(key)}`, {
+      // Removemos o '?key=' da URL para evitar vazamentos em logs/proxies. Enviamos apenas no header.
+      const response = await fetch(this.API_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

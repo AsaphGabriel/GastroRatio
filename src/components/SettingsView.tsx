@@ -8,15 +8,27 @@ export const SettingsView: React.FC = () => {
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('gastroratio_gemini_api_key') || '';
-    setApiKey(saved);
+    try {
+      const saved = localStorage.getItem('gastroratio_gemini_api_key_v2');
+      if (saved) {
+        setApiKey(atob(saved).split('').reverse().join(''));
+      } else {
+        // Migrar ou limpar chave antiga em texto puro
+        localStorage.removeItem('gastroratio_gemini_api_key');
+      }
+    } catch {
+      setApiKey('');
+    }
   }, []);
 
   const handleSaveApiKey = (e: React.FormEvent) => {
     e.preventDefault();
     if (apiKey.trim()) {
-      localStorage.setItem('gastroratio_gemini_api_key', apiKey.trim());
+      const obfuscated = btoa(apiKey.trim().split('').reverse().join(''));
+      localStorage.setItem('gastroratio_gemini_api_key_v2', obfuscated);
+      localStorage.removeItem('gastroratio_gemini_api_key'); // Remove a antiga
     } else {
+      localStorage.removeItem('gastroratio_gemini_api_key_v2');
       localStorage.removeItem('gastroratio_gemini_api_key');
     }
     setSavedSuccess(true);

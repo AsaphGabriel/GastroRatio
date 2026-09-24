@@ -26,13 +26,14 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
 
   const handleLocalParse = () => {
     setErrorMsg(null);
-    if (!rawText.trim()) {
+    const sanitizedText = rawText.trim().substring(0, 5000);
+    if (!sanitizedText) {
       setErrorMsg('Cole o texto da receita antes de extrair.');
       return;
     }
 
     try {
-      const result = SanitizeAndParseRecipeUseCase.execute(rawText);
+      const result = SanitizeAndParseRecipeUseCase.execute(sanitizedText);
       setParsedRecipe(result.recipe);
       setConfidence(result.confidence);
       setSource('local');
@@ -43,14 +44,15 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
 
   const handleAiParse = async () => {
     setErrorMsg(null);
-    if (!rawText.trim()) {
+    const sanitizedText = rawText.trim().substring(0, 5000);
+    if (!sanitizedText) {
       setErrorMsg('Cole o texto da receita antes de refinar com IA.');
       return;
     }
 
     setIsLoadingAi(true);
     try {
-      const result = await GeminiSousChefAdapter.parseChaoticRecipe(rawText);
+      const result = await GeminiSousChefAdapter.parseChaoticRecipe(sanitizedText);
       setParsedRecipe(result.recipe);
       setConfidence(1.0);
       setSource('ai');
@@ -113,10 +115,11 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
             </label>
             <textarea
               rows={5}
+              maxLength={5000}
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              placeholder="Cole aqui a receita (ex: 2 xícaras de farinha, 1 colher de sopa de sal, bata tudo...)"
-              className="w-full bg-theme-card-subtle border border-theme-subtle rounded-2xl p-3.5 text-xs text-theme-main placeholder:text-theme-dim focus:outline-none focus:border-theme-brand font-mono leading-relaxed transition"
+              placeholder="Cole aqui a receita (máx 5000 caracteres)"
+              className="w-full bg-theme-card-subtle border border-theme-subtle rounded-2xl p-3.5 text-xs text-theme-main placeholder:text-theme-dim focus:outline-none focus:border-theme-brand font-mono leading-relaxed transition resize-none"
             />
           </div>
 
