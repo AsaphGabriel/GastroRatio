@@ -73,7 +73,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
       <div className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 card-shadow space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-theme-brand-text dark:text-amber-400 flex items-center justify-center shrink-0">
               <Croissant className="w-5 h-5" />
             </div>
             <div>
@@ -128,7 +128,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                 onClick={() => setAdjustMode('flour')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition touch-target ${
                   adjustMode === 'flour'
-                    ? 'bg-amber-600 text-white shadow-sm'
+                    ? 'bg-theme-brand text-white shadow-sm'
                     : 'text-theme-muted hover:text-theme-main'
                 }`}
               >
@@ -138,7 +138,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                 onClick={() => setAdjustMode('dough')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition touch-target ${
                   adjustMode === 'dough'
-                    ? 'bg-amber-600 text-white shadow-sm'
+                    ? 'bg-theme-brand text-white shadow-sm'
                     : 'text-theme-muted hover:text-theme-main'
                 }`}
               >
@@ -170,7 +170,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                   setAdjustMode('flour');
                   setTargetFlourInput(parseFloat(e.target.value) || 0);
                 }}
-                className="w-full bg-transparent text-xl font-black text-amber-700 dark:text-amber-400 focus:outline-none scale-number"
+                className="w-full bg-transparent text-xl font-black text-theme-brand-text dark:text-amber-400 focus:outline-none scale-number"
               />
               <span className="text-xs text-theme-dim font-bold ml-1">g</span>
             </div>
@@ -211,7 +211,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                 };
                 onSelectForScale(scaledRecipe);
               }}
-              className="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center"
+              className="bg-theme-brand hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center"
             >
               <Scale className="w-3.5 h-3.5 mr-1.5" />
               Pesar na Balança →
@@ -228,7 +228,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                   <div className="flex items-center space-x-2">
                     <span className="text-xs sm:text-sm font-bold text-theme-main truncate">{ing.name}</span>
                     {isFlour && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 font-bold shrink-0">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-theme-brand-text dark:text-amber-300 font-bold shrink-0">
                         Base 100%
                       </span>
                     )}
@@ -238,7 +238,7 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
                 <div className="flex items-center space-x-4 sm:space-x-6 shrink-0">
                   {/* Baker's % */}
                   <div className="text-right w-14 sm:w-16">
-                    <span className="text-xs font-black text-amber-700 dark:text-amber-400 scale-number">
+                    <span className="text-xs font-black text-theme-brand-text dark:text-amber-400 scale-number">
                       {ing.bakersPercentage ? `${ing.bakersPercentage}%` : '-'}
                     </span>
                     <span className="text-[10px] text-theme-dim block leading-none">Baker %</span>

@@ -91,7 +91,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
 
   const scaledResult = useMemo(() => {
     return ScaleRecipeUseCase.execute(patchedRecipe, scaleOptions);
-  }, [recipe, scaleOptions]);
+  }, [patchedRecipe, scaleOptions]);
 
   const handleToggleChecked = (id: string) => {
     setCheckedIngredients((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -126,13 +126,13 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
             onClick={() => (wakeLockActive ? releaseLock() : requestLock())}
             className={`flex items-center text-xs px-3 py-1.5 rounded-full border transition touch-target ${
               wakeLockActive
-                ? 'bg-amber-500/15 border-amber-500/50 text-amber-700 dark:text-amber-300 font-bold'
+                ? 'bg-amber-500/15 border-amber-500/50 text-theme-brand-text dark:text-amber-300 font-bold'
                 : 'bg-theme-card border-theme-subtle text-theme-muted hover:text-theme-main'
             }`}
           >
             {wakeLockActive ? (
               <>
-                <Lock className="w-3.5 h-3.5 mr-1.5 text-amber-700 dark:text-amber-400 shrink-0" />
+                <Lock className="w-3.5 h-3.5 mr-1.5 text-theme-brand-text dark:text-amber-400 shrink-0" />
                 <span>Tela Sempre Ativa</span>
               </>
             ) : (
@@ -163,7 +163,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
           {recipe.isBakingRecipe && onOpenInBakers && (
             <button
               onClick={() => onOpenInBakers(recipe)}
-              className="bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition touch-target flex items-center shrink-0 self-start"
+              className="bg-amber-500/15 hover:bg-amber-500/25 text-theme-brand-text dark:text-amber-300 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition touch-target flex items-center shrink-0 self-start"
             >
               <Croissant className="w-4 h-4 mr-1.5" />
               <span>Modo Padeiro →</span>
@@ -320,10 +320,10 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
                               e.stopPropagation();
                               setExpandedSubId(isSubOpen ? null : ing.id);
                             }}
-                            className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-300 font-bold hover:bg-amber-500/25 flex items-center transition"
+                            className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-theme-brand-text dark:text-amber-300 font-bold hover:bg-amber-500/25 flex items-center transition"
                             title="Ver substituição físico-química"
                           >
-                            <FlaskConical className="w-3 h-3 mr-1 text-amber-700 dark:text-amber-400" />
+                            <FlaskConical className="w-3 h-3 mr-1 text-theme-brand-text dark:text-amber-400" />
                             Substituição
                           </button>
                         )}
@@ -342,8 +342,8 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
                 {/* Bloco de Substituição Físico-Química Expandido */}
                 {sub && isSubOpen && (
                   <div className="mt-3 pt-3 border-t border-amber-500/20 bg-amber-500/5 p-3 rounded-xl text-xs space-y-1.5 text-theme-main">
-                    <div className="flex items-center text-amber-900 dark:text-amber-200 font-bold">
-                      <FlaskConical className="w-3.5 h-3.5 mr-1.5 text-amber-700 dark:text-amber-400" />
+                    <div className="flex items-center text-theme-brand-text dark:text-amber-200 font-bold">
+                      <FlaskConical className="w-3.5 h-3.5 mr-1.5 text-theme-brand-text dark:text-amber-400" />
                       <span>Substituto: {sub.substitute}</span>
                     </div>
                     <p className="text-[11px] text-theme-muted">
@@ -362,7 +362,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
                           setActiveSubs(prev => ({ ...prev, [ing.id]: { multiplier: sub.multiplier!, newName: sub.overrideName! } }));
                           setExpandedSubId(null);
                         }}
-                        className="mt-2 w-full bg-amber-700 hover:bg-amber-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
+                        className="mt-2 w-full bg-theme-brand hover:bg-theme-brand-hover text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
                       >
                         Aplicar Substituição
                       </button>
@@ -383,7 +383,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
                       </button>
                     )}
                     {sub.waterAdjustmentAlert && (
-                      <div className="p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-[11px] mt-1 font-mono font-medium">
+                      <div className="p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-theme-brand-text dark:text-amber-200 text-[11px] mt-1 font-mono font-medium">
                         {sub.waterAdjustmentAlert}
                       </div>
                     )}
