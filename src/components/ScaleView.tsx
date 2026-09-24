@@ -279,7 +279,8 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
         <div className="space-y-2">
           {scaledResult.scaledIngredients.map((ing: RecipeIngredient) => {
             const isDone = !!checkedIngredients[ing.id];
-            const sub = findChemicalSubstitution(ing.name);
+            const originalIng = recipe.ingredients.find(o => o.id === ing.id) || ing;
+            const sub = findChemicalSubstitution(originalIng.name);
             const isSubOpen = expandedSubId === ing.id;
 
             return (
