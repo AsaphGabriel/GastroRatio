@@ -1,5 +1,5 @@
 import React from 'react';
-import { Scale, Croissant, UtensilsCrossed, BookOpen, Settings, Wifi, WifiOff } from 'lucide-react';
+import { Scale, Croissant, UtensilsCrossed, BookOpen, Settings, Wifi, WifiOff, Zap } from 'lucide-react';
 
 export type ActiveTab = 'pantry' | 'scale' | 'bakers' | 'catalog' | 'settings';
 
@@ -7,9 +7,10 @@ interface HeaderProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
   hasSelectedRecipe: boolean;
+  onOpenImporter?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, hasSelectedRecipe }) => {
+export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, hasSelectedRecipe, onOpenImporter }) => {
   const [isOnline, setIsOnline] = React.useState(navigator.onLine);
 
   React.useEffect(() => {
@@ -40,9 +41,19 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, hasSele
           </div>
         </div>
 
-        {/* Status Offline */}
+        {/* Ações Rápidas */}
         <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-1.5 text-xs text-slate-400">
+          {onOpenImporter && (
+            <button
+              onClick={onOpenImporter}
+              className="flex items-center text-xs px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold shadow transition touch-target"
+            >
+              <Zap className="w-3.5 h-3.5 mr-1" />
+              <span>Colar Receita</span>
+            </button>
+          )}
+
+          <div className="flex items-center space-x-1.5 text-xs text-slate-400 pl-2">
             {isOnline ? (
               <span className="flex items-center text-emerald-400 text-xs">
                 <Wifi className="w-3.5 h-3.5 mr-1" />

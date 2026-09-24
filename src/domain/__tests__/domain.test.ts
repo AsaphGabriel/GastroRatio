@@ -9,6 +9,8 @@ import {
   CalculateBakersPercentageUseCase,
   ScaleRecipeUseCase,
   FindRecipesByPantryUseCase,
+  SanitizeAndParseRecipeUseCase,
+  findChemicalSubstitution,
   Recipe
 } from '../index.js';
 
@@ -244,3 +246,94 @@ describe('FindRecipesByPantryUseCase (Axioma da Despensa Básica)', () => {
     assert.equal(result.missingOneIngredient[0].missingIngredients[0].name, 'Tomate');
   });
 });
+
+describe('SanitizeAndParseRecipeUseCase (Camada 1 - Parser Local)', () => {
+  const boloCenouraTexto = `
+Bolo de Cenoura Fofinho
+Ingredientes:
+- 2 xícaras de farinha de trigo
+- 1 xícara de açúcar
+- 3 unidades de cenoura
+- 1 colher de sopa de fermento químico
+- 1 pitada de sal
+
+Modo de Preparo:
+1. Bata as cenouras no liquidificador com os ovos e óleo.
+2. Misture a farinha e o açúcar em uma tigela.
+3. Adicione o fermento delicadamente e leve ao forno médio por 40 minutos.
+`;
+
+  test('Deve parsear texto brasileiro e converter xícaras/colheres para gramas com alta confiança', () => {
+    const res = SanitizeAndParseRecipeUseCase.execute(boloCenouraTexto);
+
+    assert.equal(res.recipe.title, 'Bolo de Cenoura Fofinho');
+    assert.ok(res.confidence >= 0.8, 'Confiança deve ser >= 80%');
+    assert.equal(res.source, 'local_deterministic');
+
+    // 2 xícaras de farinha = 240g
+    const farinha = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('farinha'));
+    assert.ok(farinha, 'Farinha deve ter sido encontrada');
+    assert.equal(farinha.amount, 240);
+    assert.equal(farinha.unit, 'g');
+
+    // 1 xícara de açúcar = 200g
+    const acucar = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('açúcar'));
+    assert.ok(acucar, 'Açúcar deve ter sido encontrado');
+    assert.equal(acucar.amount, 200);
+
+    // Sal e açúcar devem ser detectados com categorias e staple
+    const sal = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('sal'));
+    assert.ok(sal, 'Sal deve ter sido encontrado');
+    assert.equal(sal.isStaple, true);
+
+    // Passos de preparo
+    assert.equal(res.recipe.steps.length, 3);
+    assert.ok(res.recipe.steps[0].includes('liquidificador'));
+  });
+
+  test('Deve calcular Baker Percentage automaticamente se for receita de panificação', () => {
+    const paoTexto = `
+Pão Caseiro Rústico
+Ingredientes:
+500 g de farinha de trigo
+325 g de água
+10 g de sal
+5 g de fermento biológico seco
+
+Modo de preparo:
+Misture a farinha e a água.
+Sove por 10 minutos.
+Asse a 220 graus.
+`;
+    const res = SanitizeAndParseRecipeUseCase.execute(paoTexto);
+    assert.equal(res.recipe.isBakingRecipe, true);
+
+    const farinha = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('farinha'))!;
+    assert.equal(farinha.bakersPercentage, 100);
+
+    const agua = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('água'))!;
+    assert.equal(agua.bakersPercentage, 65);
+  });
+});
+
+describe('ChemicalSubstitutions (Substituições Físico-Químicas)', () => {
+  test('Deve encontrar substituição para açúcar com alerta de água livre', () => {
+    const sub = findChemicalSubstitution('Açúcar refinado');
+    assert.ok(sub);
+    assert.equal(sub.substitute, 'mel de abelha');
+    assert.ok(sub.waterAdjustmentAlert?.includes('água livre'));
+  });
+
+  test('Deve encontrar substituição de fermento químico', () => {
+    const sub = findChemicalSubstitution('fermento químico');
+    assert.ok(sub);
+    assert.ok(sub.substitute.includes('bicarbonato'));
+  });
+
+  test('Deve encontrar substituição de manteiga com redução de gordura', () => {
+    const sub = findChemicalSubstitution('manteiga');
+    assert.ok(sub);
+    assert.ok(sub.ratio.includes('0.85x'));
+  });
+});
+

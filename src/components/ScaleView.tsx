@@ -3,6 +3,7 @@ import { Recipe, RecipeIngredient } from '../domain/schemas/recipe.schema.js';
 import { ScaleRecipeUseCase, ScaleOptions } from '../domain/use-cases/ScaleRecipe.js';
 import { ConvertUnitsUseCase } from '../domain/use-cases/ConvertUnits.js';
 import { useWakeLock } from '../hooks/useWakeLock.js';
+import { findChemicalSubstitution } from '../domain/index.js';
 import {
   Lock,
   Unlock,
@@ -13,7 +14,8 @@ import {
   ChevronRight,
   Anchor,
   CheckCircle2,
-  Circle
+  Circle,
+  FlaskConical
 } from 'lucide-react';
 
 interface ScaleViewProps {
@@ -34,6 +36,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
 
   const [checkedIngredients, setCheckedIngredients] = useState<Record<string, boolean>>({});
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
+  const [expandedSubId, setExpandedSubId] = useState<string | null>(null);
 
   // Screen Wake Lock API (RNF-06 / ADR-07)
   const { isSupported: wakeLockSupported, isActive: wakeLockActive, requestLock, releaseLock } = useWakeLock();
@@ -246,40 +249,89 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
         <div className="space-y-2">
           {scaledResult.scaledIngredients.map((ing: RecipeIngredient) => {
             const isDone = !!checkedIngredients[ing.id];
+            const sub = findChemicalSubstitution(ing.name);
+            const isSubOpen = expandedSubId === ing.id;
+
             return (
               <div
                 key={ing.id}
-                onClick={() => handleToggleChecked(ing.id)}
-                className={`flex items-center justify-between p-3.5 rounded-xl border transition cursor-pointer select-none touch-target ${
+                className={`p-3.5 rounded-xl border transition ${
                   isDone
-                    ? 'bg-slate-900/40 border-slate-800 text-slate-500 line-through'
+                    ? 'bg-slate-900/40 border-slate-800 text-slate-500'
                     : 'bg-slate-800/80 border-slate-700/70 text-slate-100 hover:border-slate-500'
                 }`}
               >
-                <div className="flex items-center space-x-3">
-                  <div className="shrink-0 text-slate-400">
-                    {isDone ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-slate-600" />
-                    )}
+                <div
+                  onClick={() => handleToggleChecked(ing.id)}
+                  className="flex items-center justify-between cursor-pointer select-none touch-target"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="shrink-0 text-slate-400">
+                      {isDone ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-slate-600" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center flex-wrap gap-1.5">
+                        <span className={`text-sm font-semibold ${isDone ? 'line-through' : ''}`}>
+                          {ing.name}
+                        </span>
+                        {ing.isStaple && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400">
+                            Despensa
+                          </span>
+                        )}
+                        {sub && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedSubId(isSubOpen ? null : ing.id);
+                            }}
+                            className="text-[10px] px-2 py-0.5 rounded-full bg-purple-950/80 border border-purple-800/60 text-purple-300 hover:bg-purple-900 flex items-center transition"
+                            title="Ver substituição físico-química"
+                          >
+                            <FlaskConical className="w-3 h-3 mr-1 text-purple-400" />
+                            Substituição
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-sm font-semibold">{ing.name}</span>
-                    {ing.isStaple && (
-                      <span className="text-[10px] ml-2 px-1.5 py-0.5 rounded bg-slate-700 text-slate-400">
-                        Despensa
-                      </span>
-                    )}
+
+                  <div className="text-right">
+                    <span className={`text-lg font-black text-brand-400 scale-number ${isDone ? 'line-through text-slate-500' : ''}`}>
+                      {ing.amount}
+                    </span>
+                    <span className="text-xs text-slate-400 ml-1.5 font-medium">{ing.unit}</span>
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <span className="text-lg font-black text-brand-400 scale-number">
-                    {ing.amount}
-                  </span>
-                  <span className="text-xs text-slate-400 ml-1.5 font-medium">{ing.unit}</span>
-                </div>
+                {/* Bloco de Substituição Físico-Química Expandido */}
+                {sub && isSubOpen && (
+                  <div className="mt-3 pt-3 border-t border-purple-900/40 bg-purple-950/30 p-3 rounded-lg text-xs space-y-1.5 text-purple-200">
+                    <div className="flex items-center text-purple-100 font-bold">
+                      <FlaskConical className="w-3.5 h-3.5 mr-1.5 text-purple-400" />
+                      <span>Substituto: {sub.substitute}</span>
+                    </div>
+                    <p className="text-[11px] text-purple-300">
+                      <strong className="text-white">Proporção:</strong> {sub.ratio}
+                    </p>
+                    <p className="text-[11px] text-purple-300">
+                      <strong className="text-white">Função:</strong> {sub.physicalFunction}
+                    </p>
+                    <p className="text-[11px] text-purple-300/80 leading-relaxed">
+                      {sub.explanation}
+                    </p>
+                    {sub.waterAdjustmentAlert && (
+                      <div className="p-2 rounded bg-amber-950/40 border border-amber-800/50 text-amber-300 text-[11px] mt-1 font-mono">
+                        {sub.waterAdjustmentAlert}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

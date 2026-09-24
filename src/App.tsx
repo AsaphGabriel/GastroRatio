@@ -8,12 +8,14 @@ import { ScaleView } from './components/ScaleView.js';
 import { BakersView } from './components/BakersView.js';
 import { RecipesListView } from './components/RecipesListView.js';
 import { SettingsView } from './components/SettingsView.js';
+import { RecipeImporterModal } from './components/RecipeImporterModal.js';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('pantry');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [assumeBasicStaples, setAssumeBasicStaples] = useState<boolean>(true);
   const [isDbReady, setIsDbReady] = useState(false);
+  const [isImporterOpen, setIsImporterOpen] = useState(false);
 
   // Inicialização do IndexedDB com Carga Semente (Fase 2)
   useEffect(() => {
@@ -74,6 +76,12 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleSaveImportedRecipe = async (newRecipe: Recipe) => {
+    await db.saveRecipeTransaction(newRecipe);
+    setSelectedRecipe(newRecipe);
+    setActiveTab('scale');
+  };
+
   if (!isDbReady) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-400 text-xs">
@@ -88,6 +96,7 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         hasSelectedRecipe={!!selectedRecipe}
+        onOpenImporter={() => setIsImporterOpen(true)}
       />
 
       <main className="flex-1">
@@ -129,6 +138,12 @@ export const App: React.FC = () => {
 
         {activeTab === 'settings' && <SettingsView />}
       </main>
+
+      <RecipeImporterModal
+        isOpen={isImporterOpen}
+        onClose={() => setIsImporterOpen(false)}
+        onSaveRecipe={handleSaveImportedRecipe}
+      />
     </div>
   );
 };

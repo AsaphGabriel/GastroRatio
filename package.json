@@ -10,6 +10,7 @@
     "build": "tsc --noEmit && vite build"
   },
   "dependencies": {
+    "@magrinj/parse-ingredients": "^1.0.0",
     "dexie": "^4.4.6",
     "dexie-react-hooks": "^4.4.0",
     "lucide-react": "^1.48.0",
