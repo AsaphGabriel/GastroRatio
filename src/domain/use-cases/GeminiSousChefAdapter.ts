@@ -1,5 +1,4 @@
 import { Recipe, RecipeSchema } from '../schemas/recipe.schema.js';
-import { SanitizeAndParseRecipeUseCase } from './SanitizeAndParseRecipe.js';
 
 export interface SousChefParseResult {
   recipe: Recipe;

@@ -53,7 +53,7 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
       const result = await GeminiSousChefAdapter.parseChaoticRecipe(rawText);
       setParsedRecipe(result.recipe);
       setConfidence(1.0);
-      setSource(result.source);
+      setSource('ai');
     } catch (err: any) {
       setErrorMsg(err.message || 'Erro ao consultar Sous-Chef IA.');
     } finally {
