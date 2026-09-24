@@ -7,11 +7,22 @@ export interface SousChefParseResult {
 }
 
 /**
- * Adapter para assistência avançada de IA via Gemini 3.6 Flash (Camada 2 da Cascata).
- * Utiliza Structured Outputs e fallback com tratamento detalhado de erros.
+ * Adapter para assistência avançada de IA via Gemini 2.5 Flash (Camada 2 da Cascata).
+ *
+ * Correções de segurança aplicadas (Auditoria 2026-09-24):
+ * - Fix #7: Modelo corrigido para gemini-2.5-flash (existente na v1beta) [Art. 32º]
+ * - Fix #4: systemInstruction separa o contexto do sistema da entrada do usuário [OWASP LLM01:2025]
+ * - Fix #5: AbortController com timeout de 20s previne Hang DoS [CWE-400 / Pilar 23]
+ * - Fix #1: Leitura da API Key migrada de localStorage para sessionStorage [CWE-312 / Art. 1º]
+ * - Fix #8: IDs gerados via crypto.randomUUID() (criptograficamente seguros) [CWE-330]
  */
 export class GeminiSousChefAdapter {
-  private static readonly API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
+  // Fix #7: Modelo corrigido (gemini-3.6-flash era inexistente na v1beta — Art. 32º)
+  private static readonly API_ENDPOINT =
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+  // Fix #5: Timeout rígido de 20 segundos para chamadas externas (CWE-400 / Pilar 23)
+  private static readonly FETCH_TIMEOUT_MS = 20_000;
 
   /**
    * Parse avançado com IA para textos caóticos ou transcrições de áudio culinárias.
@@ -20,7 +31,8 @@ export class GeminiSousChefAdapter {
     let key = apiKey;
     if (!key) {
       try {
-        const saved = localStorage.getItem('gastroratio_gemini_api_key_v2');
+        // Fix #1: Ler a key de sessionStorage (volátil, isolado por aba) e não de localStorage [CWE-312]
+        const saved = sessionStorage.getItem('gastroratio_gemini_api_key_v2');
         if (saved) {
           key = atob(saved).split('').reverse().join('');
         }
@@ -33,6 +45,7 @@ export class GeminiSousChefAdapter {
       throw new Error('Chave da API do Gemini não configurada. Vá na aba Configurações para adicionar sua chave ou use a extração offline básica.');
     }
 
+    // Fix #4: systemPrompt declarado separadamente para uso no campo systemInstruction [OWASP LLM01:2025]
     const systemPrompt = `Você é o Sous-Chef de engenharia culinária do GastroRatio.
 Sua missão é extrair receitas de textos caóticos da internet em JSON estrito.
 Regras Inegociáveis:
@@ -41,11 +54,18 @@ Regras Inegociáveis:
 3. Categorize cada ingrediente: 'flour_grain', 'liquid', 'fat_oil', 'sugar_sweetener', 'leavening', 'protein', 'vegetable', 'dairy', 'staple_seasoning'.
 4. Divida o modo de preparo em etapas claras e sucintas de no máximo 4 linhas.`;
 
+    // Fix #4: systemInstruction separa fisicamente o contexto do sistema do input do usuário,
+    // prevenindo Direct/Indirect Prompt Injection via texto de receitas maliciosas [OWASP LLM01:2025]
     const requestBody = {
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
+      },
       contents: [
         {
+          role: 'user',
           parts: [
-            { text: `${systemPrompt}\n\nTexto bruto da receita a ser extraída:\n${rawText}` }
+            // Delimitadores estruturados encapsulam o input do usuário, separando-o da instrução
+            { text: `<recipe_input>\n${rawText}\n</recipe_input>` }
           ]
         }
       ],
@@ -55,15 +75,20 @@ Regras Inegociáveis:
       }
     };
 
+    // Fix #5: AbortController com timeout determinístico de 20s [CWE-400 / Pilar 23 / Art. 22º]
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), GeminiSousChefAdapter.FETCH_TIMEOUT_MS);
+
     try {
-      // Removemos o '?key=' da URL para evitar vazamentos em logs/proxies. Enviamos apenas no header.
+      // A API Key é enviada exclusivamente via header — nunca como query param (proteção em logs/proxies)
       const response = await fetch(this.API_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-goog-api-key': key
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
       });
 
       if (!response.ok) {
@@ -74,7 +99,7 @@ Regras Inegociáveis:
             errorDetails += ` — ${errData.error.message}`;
           }
         } catch {
-          // ignora se não for json
+          // Mantém fallback para o status HTTP se a resposta não for JSON
         }
         throw new Error(`[GeminiSousChef] Erro na API Gemini: ${errorDetails}`);
       }
@@ -94,7 +119,8 @@ Regras Inegociáveis:
 
       // Normaliza ID e campos obrigatórios para o RecipeSchema
       const normalizedRecipe: Recipe = {
-        id: `rec-ai-${Date.now()}`,
+        // Fix #8: crypto.randomUUID() em vez de Date.now() — criptograficamente seguro [CWE-330]
+        id: `rec-ai-${crypto.randomUUID()}`,
         title: parsed.title || 'Receita Extraída por IA',
         description: parsed.description || 'Extraída com precisão pelo Sous-Chef Gemini Flash.',
         baseYield: parsed.baseYield || 4,
@@ -102,7 +128,7 @@ Regras Inegociáveis:
         prepTimeMinutes: parsed.prepTimeMinutes || 15,
         cookTimeMinutes: parsed.cookTimeMinutes || 25,
         isBakingRecipe: !!parsed.isBakingRecipe,
-        ingredients: (parsed.ingredients || []).map((ing: any, idx: number) => {
+        ingredients: (parsed.ingredients || []).map((ing: any) => {
           const rawUnit = String(ing.unit || 'g').toLowerCase().trim();
           let unit: UnitType = 'g';
           if (['g', 'kg', 'ml', 'l', 'cup', 'tablespoon', 'teaspoon', 'unit'].includes(rawUnit)) {
@@ -122,8 +148,9 @@ Regras Inegociáveis:
           }
 
           return {
-            id: `ing-ai-${idx + 1}`,
-            name: ing.name || ing.ingredient || ing.item || `Ingrediente ${idx + 1}`,
+            // Fix #8: crypto.randomUUID() para IDs de ingredientes [CWE-330]
+            id: `ing-${crypto.randomUUID()}`,
+            name: ing.name || ing.ingredient || ing.item || 'Ingrediente',
             amount: typeof ing.amount === 'number' ? ing.amount : parseFloat(ing.amount) || 100,
             unit,
             isStaple: !!ing.isStaple,
@@ -135,7 +162,7 @@ Regras Inegociáveis:
         tags: Array.isArray(parsed.tags) ? parsed.tags : ['importada', 'ia']
       };
 
-      // Validação estrita via Zod
+      // Validação estrita via Zod como camada final de defesa
       RecipeSchema.parse(normalizedRecipe);
 
       return {
@@ -143,8 +170,15 @@ Regras Inegociáveis:
         source: 'gemini_flash_api',
         rawOutput: rawJson
       };
-    } catch (err) {
+    } catch (err: any) {
+      // Fix #5: Traduz erro de AbortController para mensagem de usuário legível
+      if (err?.name === 'AbortError') {
+        throw new Error('[GeminiSousChef] Tempo limite de 20s excedido. Verifique sua conexão e tente novamente.');
+      }
       throw err;
+    } finally {
+      // Fix #5: Limpa o timer em todos os cenários (sucesso, erro, abort) — Art. 22º RAII
+      clearTimeout(timeoutId);
     }
   }
 }

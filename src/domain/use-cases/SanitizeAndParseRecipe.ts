@@ -169,7 +169,8 @@ export class SanitizeAndParseRecipeUseCase {
           const conversion = ConvertUnitsUseCase.execute(parsed.ingredient, rawAmount, unit);
 
           ingredients.push({
-            id: `ing-parsed-${i + 1}`,
+            // Fix #8: crypto.randomUUID() em vez de índice sequencial [CWE-330]
+            id: `ing-${crypto.randomUUID()}`,
             name: parsed.ingredient.charAt(0).toUpperCase() + parsed.ingredient.slice(1),
             amount: conversion.grams.toNumber(),
             unit: 'g',
@@ -219,7 +220,8 @@ export class SanitizeAndParseRecipeUseCase {
     }
 
     const recipe: Recipe = {
-      id: `rec-imported-${Date.now()}`,
+      // Fix #8: crypto.randomUUID() em vez de Date.now() — previne colisões e enumeração [CWE-330]
+      id: `rec-imported-${crypto.randomUUID()}`,
       title: title || 'Receita Importada da Internet',
       description: `Importada via parser local (${ingredients.length} ingredientes identificados em gramas).`,
       baseYield: 4,

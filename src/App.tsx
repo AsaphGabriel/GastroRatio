@@ -66,7 +66,8 @@ export const App: React.FC = () => {
   };
 
   const handleAddPantryItem = async (name: string, category: any) => {
-    const id = 'p-' + Date.now();
+    // Fix #8: crypto.randomUUID() em vez de Date.now() — previne colisões e enumeração [CWE-330]
+    const id = 'p-' + crypto.randomUUID();
     await db.pantry.put({
       id,
       name,

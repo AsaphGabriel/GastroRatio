@@ -9,13 +9,13 @@ export const SettingsView: React.FC = () => {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('gastroratio_gemini_api_key_v2');
+      const saved = sessionStorage.getItem('gastroratio_gemini_api_key_v2');
       if (saved) {
         setApiKey(atob(saved).split('').reverse().join(''));
-      } else {
-        // Migrar ou limpar chave antiga em texto puro
-        localStorage.removeItem('gastroratio_gemini_api_key');
       }
+      // Purgar ativamente resquícios legados inseguros do localStorage (CWE-312 / Art. 1º)
+      localStorage.removeItem('gastroratio_gemini_api_key_v2');
+      localStorage.removeItem('gastroratio_gemini_api_key');
     } catch {
       setApiKey('');
     }
@@ -25,12 +25,13 @@ export const SettingsView: React.FC = () => {
     e.preventDefault();
     if (apiKey.trim()) {
       const obfuscated = btoa(apiKey.trim().split('').reverse().join(''));
-      localStorage.setItem('gastroratio_gemini_api_key_v2', obfuscated);
-      localStorage.removeItem('gastroratio_gemini_api_key'); // Remove a antiga
+      sessionStorage.setItem('gastroratio_gemini_api_key_v2', obfuscated);
     } else {
-      localStorage.removeItem('gastroratio_gemini_api_key_v2');
-      localStorage.removeItem('gastroratio_gemini_api_key');
+      sessionStorage.removeItem('gastroratio_gemini_api_key_v2');
     }
+    // Purgar ativamente resquícios inseguros do localStorage em toda operação de salvar
+    localStorage.removeItem('gastroratio_gemini_api_key_v2');
+    localStorage.removeItem('gastroratio_gemini_api_key');
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2500);
   };
@@ -58,29 +59,38 @@ export const SettingsView: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Barreira de tamanho de arquivo: previne OOM DoS (CWE-400 / VibeSec File Upload)
+    const MAX_BACKUP_SIZE = 5 * 1024 * 1024; // 5 MB
+    if (file.size > MAX_BACKUP_SIZE) {
+      alert('Erro: O arquivo de backup excede o tamanho máximo permitido de 5 MB.');
+      e.target.value = '';
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
         const content = event.target?.result as string;
         const parsed = JSON.parse(content);
         if (parsed.recipes && Array.isArray(parsed.recipes)) {
-          // Validação estrita de runtime com Zod (Pilar 2 & 8)
-          for (const r of parsed.recipes) {
-            RecipeSchema.parse(r);
-          }
-          if (parsed.pantry && Array.isArray(parsed.pantry)) {
-            for (const p of parsed.pantry) {
-              PantryItemSchema.parse(p);
-            }
-          }
+          // Validação e sanitização Zod em runtime: usar o RETORNO do parse() (CWE-915 / Pilar 2 & 8)
+          // O retorno de RecipeSchema.parse() descarta propriedades não declaradas no schema,
+          // prevenindo Mass Assignment e injeção de campos extras no IndexedDB.
+          const sanitizedRecipes = (parsed.recipes as unknown[]).map((r) =>
+            RecipeSchema.parse(r)
+          );
+          const sanitizedPantry =
+            parsed.pantry && Array.isArray(parsed.pantry)
+              ? (parsed.pantry as unknown[]).map((p) => PantryItemSchema.parse(p))
+              : [];
 
-          // Transação atômica ACID (tudo ou nada)
+          // Transação atômica ACID (tudo ou nada) operando sobre dados higienizados
           await db.transaction('rw', [db.recipes, db.pantry], async () => {
             await db.recipes.clear();
-            await db.recipes.bulkAdd(parsed.recipes);
-            if (parsed.pantry && Array.isArray(parsed.pantry)) {
+            await db.recipes.bulkAdd(sanitizedRecipes);
+            if (sanitizedPantry.length > 0) {
               await db.pantry.clear();
-              await db.pantry.bulkAdd(parsed.pantry);
+              await db.pantry.bulkAdd(sanitizedPantry);
             }
           });
 
