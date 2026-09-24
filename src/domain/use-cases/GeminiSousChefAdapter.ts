@@ -20,13 +20,8 @@ export class GeminiSousChefAdapter {
   public static async parseChaoticRecipe(rawText: string, apiKey?: string): Promise<SousChefParseResult> {
     const key = apiKey || localStorage.getItem('gastroratio_gemini_api_key') || '';
 
-    // Se não houver chave de IA configurada, executa o Parser Local Determinístico (Camada 1)
     if (!key) {
-      const localResult = SanitizeAndParseRecipeUseCase.execute(rawText);
-      return {
-        recipe: localResult.recipe,
-        source: 'local_fallback'
-      };
+      throw new Error('Chave da API do Gemini não configurada. Vá na aba Configurações para adicionar sua chave ou use a extração offline básica.');
     }
 
     const systemPrompt = `Você é o Sous-Chef de engenharia culinária do GastroRatio.
@@ -102,12 +97,7 @@ Regras Inegociáveis:
         rawOutput: rawJson
       };
     } catch (err) {
-      console.warn('[GeminiSousChef] Falha ao consultar Gemini Flash, acionando fallback local:', err);
-      const fallback = SanitizeAndParseRecipeUseCase.execute(rawText);
-      return {
-        recipe: fallback.recipe,
-        source: 'local_fallback'
-      };
+      throw err;
     }
   }
 }

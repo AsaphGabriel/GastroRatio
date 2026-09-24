@@ -53,7 +53,7 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
       const result = await GeminiSousChefAdapter.parseChaoticRecipe(rawText);
       setParsedRecipe(result.recipe);
       setConfidence(1.0);
-      setSource('ai');
+      setSource(result.source);
     } catch (err: any) {
       setErrorMsg(err.message || 'Erro ao consultar Sous-Chef IA.');
     } finally {
@@ -63,8 +63,12 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
 
   const handleSave = async () => {
     if (!parsedRecipe) return;
-    await onSaveRecipe(parsedRecipe);
-    onClose();
+    try {
+      await onSaveRecipe(parsedRecipe);
+      onClose();
+    } catch (e: any) {
+      setErrorMsg('Erro de validação (Provavelmente não encontrou ingredientes): ' + e.message);
+    }
   };
 
   return (
