@@ -81,7 +81,15 @@ export const SettingsView: React.FC = () => {
           <div>
             <h2 className="text-sm sm:text-base font-bold text-theme-main">Chave de IA Gemini (BYOK — Opcional)</h2>
             <p className="text-xs text-theme-muted">
-              Utilizada apenas para o parse de receitas caóticas da internet. O app funciona 100% offline sem ela.
+              Utilizada apenas para o parse de receitas caóticas da internet. O app funciona 100% offline sem ela.{' '}
+              <a 
+                href="https://aistudio.google.com/app/apikey" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-theme-brand hover:underline font-bold"
+              >
+                Obter chave gratuita no Google AI Studio →
+              </a>
             </p>
           </div>
         </div>
