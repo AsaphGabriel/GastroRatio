@@ -105,3 +105,8 @@ body {
   background: var(--border-strong);
   border-radius: 9999px;
 }
+
+/* Toggle ativo */
+input.peer:checked + .toggle-track {
+  background-color: var(--brand-main);
+}

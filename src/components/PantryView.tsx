@@ -95,7 +95,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
               onChange={(e) => onToggleAssumeStaples(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 relative bg-theme-card-subtle peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:[background-color:var(--brand-main)] border border-theme-subtle"></div>
+            <div className="w-11 h-6 relative bg-theme-card-subtle peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-track border border-theme-subtle"></div>
           </label>
         </div>
       </div>
