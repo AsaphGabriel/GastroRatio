@@ -7,7 +7,9 @@
     "test": "tsx --test src/**/*.test.ts",
     "simulate": "tsx src/domain/simulation/run-simulation.ts",
     "typecheck": "tsc --noEmit",
-    "build": "tsc --noEmit && vite build"
+    "build": "tsc --noEmit && vite build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@magrinj/parse-ingredients": "^1.0.0",
@@ -25,6 +27,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "autoprefixer": "^10.6.1",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
