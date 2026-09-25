@@ -43,9 +43,9 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
       const { ExtractTextFromPdfUseCase } = await import('../domain/use-cases/ExtractTextFromPdf.js');
       const text = await ExtractTextFromPdfUseCase.execute(file);
       setRawText(text.substring(0, 5000));
-    } catch (err) {
-      console.error(err);
-      setErrorMsg('Erro ao ler PDF. Ele pode ser uma imagem escaneada sem texto ou estar protegido.');
+    } catch (err: any) {
+      console.error("PDF Extraction Error:", err);
+      setErrorMsg(`Falha na extração. Possíveis causas: (1) O PDF é uma imagem sem texto selecionável. (2) O arquivo está corrompido ou protegido. (3) Bloqueio de segurança (CSP/Worker). Detalhe técnico: ${err?.message || 'Desconhecido'}`);
     } finally {
       setIsLoadingLocal(false);
     }
@@ -282,7 +282,7 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
           <div className="flex flex-col sm:flex-row items-center gap-2">
             <button
               onClick={handleLocalParse}
-              disabled={isLoadingLocal || isLoadingAi}
+              disabled={isLoadingLocal || isLoadingAi || !rawText.trim()}
               className="w-full sm:flex-1 bg-theme-brand hover:opacity-90 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center transition touch-target disabled:opacity-50"
             >
               <Zap className="w-4 h-4 mr-1.5 shrink-0" />
