@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Recipe } from '../domain/schemas/recipe.schema.js';
-import { Search, Clock, Scale, RotateCcw, Tag } from 'lucide-react';
+import { Search, Clock, ChefHat, RotateCcw, Tag } from 'lucide-react';
 
 interface RecipesListViewProps {
   recipes: Recipe[];
@@ -120,8 +120,8 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
                 onClick={() => onSelectRecipe(recipe)}
                 className="bg-theme-card hover:bg-theme-brand hover:text-white text-theme-main border border-theme-subtle hover:border-theme-brand px-3.5 py-1.5 rounded-xl text-xs font-bold transition touch-target flex items-center shadow-sm"
               >
-                <Scale className="w-3.5 h-3.5 mr-1.5" />
-                Pesar na Balança
+                <ChefHat className="w-3.5 h-3.5 mr-1.5" />
+                Modo Cozinha
               </button>
             </div>
           </div>

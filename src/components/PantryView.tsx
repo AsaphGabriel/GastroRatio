@@ -207,7 +207,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h2 className="text-sm sm:text-base font-bold text-theme-main flex items-center">
             <Sparkles className="w-4 h-4 mr-2 text-amber-500 shrink-0" />
-            Sugestões com a sua Bancada ({searchResults.readyToCook.length} prontas)
+            Sugestões com a sua Despensa ({searchResults.readyToCook.length} prontas)
           </h2>
           <span className="text-xs text-theme-dim">
             {activeAvailableNames.length} {activeAvailableNames.length === 1 ? 'item selecionado' : 'itens selecionados'}
@@ -220,9 +220,9 @@ export const PantryView: React.FC<PantryViewProps> = ({
             <div className="w-12 h-12 rounded-2xl bg-theme-brand-subtle text-theme-brand flex items-center justify-center mx-auto">
               <ChefHat className="w-6 h-6" />
             </div>
-            <h3 className="text-sm font-bold text-theme-main">Bancada Limpa! O que você tem na cozinha?</h3>
+            <h3 className="text-sm font-bold text-theme-main">Despensa Vazia! O que você tem na cozinha?</h3>
             <p className="text-xs text-theme-muted max-w-md mx-auto leading-relaxed">
-              Marque os ingredientes na grade acima (ex: <strong>Ovos</strong>, <strong>Tomate</strong>, <strong>Queijo</strong> ou <strong>Peito de Frango</strong>) para o GastroRatio encontrar receitas deliciosas que você pode preparar sem desperdício.
+              Marque os ingredientes na grade acima (ex: <strong>Ovos</strong>, <strong>Tomate</strong>, <strong>Queijo</strong> ou <strong>Peito de Frango</strong>) para encontrar receitas deliciosas que você pode preparar sem desperdício.
             </p>
           </div>
         ) : searchResults.readyToCook.length > 0 ? (
@@ -255,7 +255,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
                     onClick={() => onSelectRecipeForScale(recipe)}
                     className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center"
                   >
-                    Abrir na Balança →
+                    Modo Cozinha →
                   </button>
                 </div>
               </div>

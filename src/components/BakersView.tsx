@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Recipe } from '../domain/schemas/recipe.schema.js';
 import { CalculateBakersPercentageUseCase } from '../domain/use-cases/CalculateBakersPercentage.js';
-import { Croissant, Droplets, Scale } from 'lucide-react';
+import { Croissant, Droplets, ChefHat } from 'lucide-react';
 
 interface BakersViewProps {
   recipes: Recipe[];
@@ -227,8 +227,8 @@ export const BakersView: React.FC<BakersViewProps> = ({ recipes, initialRecipe, 
               }}
               className="bg-theme-brand hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center"
             >
-              <Scale className="w-3.5 h-3.5 mr-1.5" />
-              Pesar na Balança →
+              <ChefHat className="w-3.5 h-3.5 mr-1.5" />
+              Modo Cozinha →
             </button>
           )}
         </div>

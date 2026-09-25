@@ -152,7 +152,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
             ) : (
               <>
                 <Unlock className="w-3.5 h-3.5 mr-1.5 shrink-0" />
-                <span>Ativar Tela na Bancada</span>
+                <span>Manter Tela Ativa</span>
               </>
             )}
           </button>
