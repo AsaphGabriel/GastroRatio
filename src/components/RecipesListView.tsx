@@ -72,22 +72,25 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
           />
         </div>
 
-        {/* Tags em Scroll Suave */}
-        <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 no-scrollbar">
-          <Tag className="w-3.5 h-3.5 text-theme-dim shrink-0 ml-1 mr-0.5" />
-          {allTags.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setSelectedTag(tag)}
-              className={`text-xs px-3 py-1 rounded-xl transition shrink-0 font-medium touch-target ${
-                selectedTag === tag
-                  ? 'bg-theme-brand text-white shadow-sm'
-                  : 'bg-theme-card border border-theme-subtle text-theme-muted hover:text-theme-main'
-              }`}
+        {/* Filtro de Categorias (Modal/Select Native) */}
+        <div className="relative">
+          <div className="flex items-center bg-theme-card border border-theme-subtle rounded-xl px-3 py-2.5 card-shadow transition hover:border-theme-strong">
+            <Tag className="w-4 h-4 text-theme-dim shrink-0 mr-2" />
+            <select
+              value={selectedTag}
+              onChange={(e) => setSelectedTag(e.target.value)}
+              className="w-full bg-transparent text-xs text-theme-main font-medium focus:outline-none appearance-none cursor-pointer"
             >
-              {tag === 'all' ? 'Todas' : tag}
-            </button>
-          ))}
+              {allTags.map((tag) => (
+                <option key={tag} value={tag}>
+                  {tag === 'all' ? 'Todas as Categorias' : tag}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-theme-dim">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
         </div>
       </div>
 

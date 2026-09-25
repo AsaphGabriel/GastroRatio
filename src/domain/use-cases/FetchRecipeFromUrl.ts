@@ -7,18 +7,57 @@ export class FetchRecipeFromUrlUseCase {
   }
 
   public static async extractRawTextFromUrl(url: string): Promise<string> {
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    // 1. Tenta corsproxy.io (mais rápido, suporta sites bloqueados)
+    let proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    let html = '';
     
     try {
-      const response = await fetch(proxyUrl);
-      if (!response.ok) {
-        throw new Error(`Falha ao acessar a URL. Status: ${response.status}`);
+      let response = await fetch(proxyUrl);
+      if (!response.ok) throw new Error('CORSProxy failed');
+      html = await response.text();
+    } catch (e) {
+      // 2. Fallback para allorigins.win
+      try {
+        proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        let response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error(`Falha ao acessar a URL.`);
+        html = await response.text();
+      } catch (err: any) {
+        throw new Error(`Erro de conexão com o site (CORS/Bloqueio). Tente copiar e colar o texto da receita manualmente.`);
       }
-      const html = await response.text();
+    }
+
+    try {
       return this.parseJsonLd(html, url);
     } catch (e: any) {
-      throw new Error(`Erro ao importar receita: ${e.message}`);
+      // Fallback: Se não encontrou schema JSON-LD, extrai o body como texto bruto!
+      return this.extractFallbackText(html, url);
     }
+  }
+
+  private static extractFallbackText(html: string, url: string): string {
+    // Extrai o body cru removendo tags HTML script e style
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    let bodyText = bodyMatch ? bodyMatch[1] : html;
+    
+    // Remove scripts e styles
+    bodyText = bodyText.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ');
+    bodyText = bodyText.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ');
+    
+    // Troca tags HTML comuns por quebras de linha para dar respiro ao parser
+    bodyText = bodyText.replace(/<br\s*\/?>/gi, '\n');
+    bodyText = bodyText.replace(/<\/(p|div|li|h1|h2|h3|h4|h5|h6)>/gi, '\n\n');
+    
+    // Limpa tags residuais
+    bodyText = bodyText.replace(/<[^>]+>/ig, ' ');
+    
+    // Decodifica entidades HTML comuns
+    bodyText = bodyText.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+    
+    // Remove espaços excessivos
+    bodyText = bodyText.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n');
+    
+    return `${bodyText}\n\nFonte: ${url}`;
   }
 
   private static parseJsonLd(html: string, sourceUrl: string): string {

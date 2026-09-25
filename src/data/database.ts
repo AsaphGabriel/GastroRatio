@@ -35,30 +35,25 @@ export class GastroRatioDatabase extends Dexie {
         }
         await this.recipes.bulkAdd(SEED_CANONICAL_RECIPES);
 
-        // Itens comuns pré-cadastrados na bancada (todos desmarcados por padrão para experiência limpa)
-        const initialPantryItems: PantryItem[] = [
-          { id: 'p-frango', name: 'Peito de Frango', category: 'protein', inStock: false },
-          { id: 'p-carne-moida', name: 'Carne Moída', category: 'protein', inStock: false },
-          { id: 'p-bife', name: 'Bife Bovino', category: 'protein', inStock: false },
-          { id: 'p-ovos', name: 'Ovos', category: 'protein', inStock: false },
-          { id: 'p-calabresa', name: 'Linguiça Calabresa', category: 'protein', inStock: false },
-          { id: 'p-batata', name: 'Batata', category: 'vegetable', inStock: false },
-          { id: 'p-cenoura', name: 'Cenoura', category: 'vegetable', inStock: false },
-          { id: 'p-tomate', name: 'Tomate', category: 'vegetable', inStock: false },
-          { id: 'p-couve', name: 'Couve', category: 'vegetable', inStock: false },
-          { id: 'p-milho', name: 'Milho Verde', category: 'vegetable', inStock: false },
-          { id: 'p-leite', name: 'Leite', category: 'liquid', inStock: false },
-          { id: 'p-creme-leite', name: 'Creme de Leite', category: 'dairy', inStock: false },
-          { id: 'p-mussarela', name: 'Queijo Mussarela', category: 'dairy', inStock: false },
-          { id: 'p-farinha', name: 'Farinha de Trigo', category: 'flour_grain', inStock: false },
-          { id: 'p-fuba', name: 'Fubá', category: 'flour_grain', inStock: false },
-          { id: 'p-polvilho', name: 'Polvilho Doce', category: 'flour_grain', inStock: false },
-          { id: 'p-arroz', name: 'Arroz Branco', category: 'flour_grain', inStock: false },
-          { id: 'p-feijao', name: 'Feijão Carioca', category: 'flour_grain', inStock: false },
-          { id: 'p-macarrao', name: 'Macarrão', category: 'flour_grain', inStock: false }
-        ];
+        // Gera a despensa baseando-se RIGOROSAMENTE em todos os ingredientes das receitas
+        const uniqueIngredients = new Map<string, PantryItem>();
+        let idCounter = 0;
+        
+        for (const recipe of SEED_CANONICAL_RECIPES) {
+          for (const ing of recipe.ingredients) {
+            const normalized = ing.name.toLowerCase().trim();
+            if (!uniqueIngredients.has(normalized)) {
+              uniqueIngredients.set(normalized, {
+                id: `p-seed-${idCounter++}`,
+                name: ing.name.trim(),
+                category: 'staple_seasoning',
+                inStock: false
+              });
+            }
+          }
+        }
 
-        await this.pantry.bulkAdd(initialPantryItems);
+        await this.pantry.bulkAdd(Array.from(uniqueIngredients.values()));
 
         // Preferência padrão: Despensa Básica Assumida = ON
         await this.settings.put({ key: 'assume_basic_staples', value: true });
@@ -80,12 +75,35 @@ export class GastroRatioDatabase extends Dexie {
   }
 
   /**
-   * Atualização atômica ACID de receita com validação de schema em runtime (Pilar 2 & 11).
+   * Atualização atômica ACID de receita com validação de schema e sincronização deduplicada na Despensa.
    */
   async saveRecipeTransaction(recipe: Recipe): Promise<void> {
     RecipeSchema.parse(recipe);
-    await this.transaction('rw', this.recipes, async () => {
+    await this.transaction('rw', [this.recipes, this.pantry], async () => {
       await this.recipes.put(recipe);
+      
+      const existingPantry = await this.pantry.toArray();
+      const existingNames = new Set(existingPantry.map(i => i.name.toLowerCase().trim()));
+      
+      const newPantryItems: PantryItem[] = [];
+      for (const ingredient of recipe.ingredients) {
+        const name = ingredient.name.trim();
+        const normalized = name.toLowerCase();
+        
+        if (!existingNames.has(normalized)) {
+          existingNames.add(normalized);
+          newPantryItems.push({
+            id: `p-import-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            name: name.charAt(0).toUpperCase() + name.slice(1),
+            category: 'staple_seasoning',
+            inStock: false
+          });
+        }
+      }
+      
+      if (newPantryItems.length > 0) {
+        await this.pantry.bulkAdd(newPantryItems);
+      }
     });
   }
 
