@@ -12,11 +12,13 @@ import { RecipeImporterModal } from './components/RecipeImporterModal.js';
 import { generateId } from './utils/id.js';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('pantry');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('catalog');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [assumeBasicStaples, setAssumeBasicStaples] = useState<boolean>(true);
   const [isDbReady, setIsDbReady] = useState(false);
   const [isImporterOpen, setIsImporterOpen] = useState(false);
+  // BakersView is now contextual — only accessible from within ScaleView
+  const [isBakersOpen, setIsBakersOpen] = useState(false);
 
   // Sistema de Tema Duplo: Claro (Bege Culinário / Terracota) vs Escuro (Midnight Slate)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -93,12 +95,17 @@ export const App: React.FC = () => {
 
   const handleSelectRecipeForScale = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
+    setIsBakersOpen(false);
     setActiveTab('scale');
   };
 
-  const handleSelectForBakers = (recipe: Recipe) => {
+  const handleOpenInBakers = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
-    setActiveTab('bakers');
+    setIsBakersOpen(true);
+  };
+
+  const handleCloseBakers = () => {
+    setIsBakersOpen(false);
   };
 
   const handleResetToSeed = async () => {
@@ -127,13 +134,20 @@ export const App: React.FC = () => {
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        
         onOpenImporter={() => setIsImporterOpen(true)}
         theme={theme}
         onToggleTheme={handleToggleTheme}
       />
 
       <main className="flex-1">
+        {activeTab === 'catalog' && (
+          <RecipesListView
+            recipes={recipes}
+            onSelectRecipe={handleSelectRecipeForScale}
+            onResetToSeed={handleResetToSeed}
+          />
+        )}
+
         {activeTab === 'pantry' && (
           <PantryView
             recipes={recipes}
@@ -148,7 +162,6 @@ export const App: React.FC = () => {
           />
         )}
 
-        
         {activeTab === 'scale' && !selectedRecipe && (
           <div className="max-w-4xl mx-auto px-4 py-12 flex flex-col items-center justify-center text-center space-y-4">
             <div className="w-16 h-16 rounded-2xl bg-theme-brand-subtle text-theme-brand flex items-center justify-center">
@@ -158,35 +171,28 @@ export const App: React.FC = () => {
             </div>
             <h2 className="text-xl font-bold text-theme-main">Nenhuma Receita Selecionada</h2>
             <p className="text-sm text-theme-muted max-w-md">
-              Para usar a balança, vá na Bancada ou no Catálogo de Receitas e selecione um prato para preparo.
+              Para usar o Modo Cozinha, vá em Receitas ou Despensa e selecione um prato para preparar.
             </p>
-            <button onClick={() => setActiveTab('pantry')} className="px-6 py-2.5 mt-4 rounded-xl bg-theme-brand hover:opacity-90 text-white font-bold transition shadow-sm touch-target">
-              Voltar para Bancada
+            <button onClick={() => setActiveTab('catalog')} className="px-6 py-2.5 mt-4 rounded-xl bg-theme-brand hover:opacity-90 text-white font-bold transition shadow-sm touch-target">
+              Ver Receitas
             </button>
           </div>
         )}
 
-        {activeTab === 'scale' && selectedRecipe && (
+        {activeTab === 'scale' && selectedRecipe && !isBakersOpen && (
           <ScaleView
             recipe={selectedRecipe}
-            onBackToPantry={() => setActiveTab('pantry')}
-            onOpenInBakers={handleSelectForBakers}
+            onBackToRecipes={() => setActiveTab('catalog')}
+            onOpenInBakers={handleOpenInBakers}
           />
         )}
 
-        {activeTab === 'bakers' && (
+        {activeTab === 'scale' && selectedRecipe && isBakersOpen && (
           <BakersView
             recipes={recipes}
             initialRecipe={selectedRecipe || undefined}
             onSelectForScale={handleSelectRecipeForScale}
-          />
-        )}
-
-        {activeTab === 'catalog' && (
-          <RecipesListView
-            recipes={recipes}
-            onSelectRecipe={handleSelectRecipeForScale}
-            onResetToSeed={handleResetToSeed}
+            onClose={handleCloseBakers}
           />
         )}
 

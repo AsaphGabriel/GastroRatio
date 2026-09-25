@@ -1,23 +1,21 @@
 import React from 'react';
 import {
-  Scale,
-  Croissant,
   UtensilsCrossed,
   BookOpen,
+  ChefHat,
   Settings,
   Wifi,
   WifiOff,
-  Zap,
+  ClipboardList,
   Sun,
   Moon
 } from 'lucide-react';
 
-export type ActiveTab = 'pantry' | 'scale' | 'bakers' | 'catalog' | 'settings';
+export type ActiveTab = 'catalog' | 'pantry' | 'scale' | 'settings';
 
 interface HeaderProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
-
   onOpenImporter?: () => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
@@ -26,7 +24,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
-
   onOpenImporter,
   theme,
   onToggleTheme
@@ -50,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Brand */}
         <div className="flex items-center space-x-2 shrink-0">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-theme-brand flex items-center justify-center text-white shadow-sm shadow-orange-500/20">
-            <Scale className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ChefHat className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
@@ -62,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <p className="text-[10px] text-theme-dim hidden md:block leading-none mt-0.5">
-              Engenharia Culinária & Despensa
+              Sua cozinha, sem complicação
             </p>
           </div>
         </div>
@@ -73,11 +70,11 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenImporter}
               className="flex items-center text-xs px-2.5 sm:px-3 py-1.5 rounded-xl bg-theme-brand hover:opacity-90 text-white font-semibold shadow-sm transition touch-target"
-              title="Importar receita colada da internet"
+              title="Importar receita (link ou texto)"
             >
-              <Zap className="w-3.5 h-3.5 mr-1 shrink-0" />
-              <span className="hidden sm:inline">Colar Receita</span>
-              <span className="sm:hidden">Colar</span>
+              <ClipboardList className="w-3.5 h-3.5 mr-1 shrink-0" />
+              <span className="hidden sm:inline">Importar Receita</span>
+              <span className="sm:hidden">Importar</span>
             </button>
           )}
 
@@ -110,46 +107,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Barra de Navegação Responsiva */}
-      <nav className="max-w-4xl mx-auto mt-2.5 grid grid-cols-5 gap-1 bg-theme-card-subtle p-1 rounded-xl border border-theme-subtle">
-        <button
-          onClick={() => setActiveTab('pantry')}
-          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
-            activeTab === 'pantry'
-              ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
-              : 'text-theme-muted hover:text-theme-main'
-          }`}
-        >
-          <UtensilsCrossed className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
-          <span className="text-[10px] sm:text-xs">Bancada</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('scale')}
-          
-          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
-            activeTab === 'scale'
-              ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
-              : 'text-theme-muted hover:text-theme-main'
-          }`}
-          title='Balança de precisão'
-        >
-          <Scale className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
-          <span className="text-[10px] sm:text-xs">Balança</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('bakers')}
-          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
-            activeTab === 'bakers'
-              ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
-              : 'text-theme-muted hover:text-theme-main'
-          }`}
-        >
-          <Croissant className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
-          <span className="text-[10px] sm:text-xs">Chef</span>
-        </button>
-
+      {/* Barra de Navegação Responsiva — 4 abas */}
+      <nav className="max-w-4xl mx-auto mt-2.5 grid grid-cols-4 gap-1 bg-theme-card-subtle p-1 rounded-xl border border-theme-subtle">
         <button
           onClick={() => setActiveTab('catalog')}
           className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
@@ -160,6 +119,31 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <BookOpen className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
           <span className="text-[10px] sm:text-xs">Receitas</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('pantry')}
+          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
+            activeTab === 'pantry'
+              ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
+              : 'text-theme-muted hover:text-theme-main'
+          }`}
+        >
+          <UtensilsCrossed className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
+          <span className="text-[10px] sm:text-xs">Despensa</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('scale')}
+          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
+            activeTab === 'scale'
+              ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
+              : 'text-theme-muted hover:text-theme-main'
+          }`}
+          title="Modo Cozinha — pese e acompanhe o preparo"
+        >
+          <ChefHat className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
+          <span className="text-[10px] sm:text-xs">Cozinha</span>
         </button>
 
         <button

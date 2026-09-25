@@ -8,7 +8,6 @@ import {
   AlertCircle,
   Clock,
   ChefHat,
-  ShieldCheck,
   RotateCcw,
   CheckCheck
 } from 'lucide-react';
@@ -71,34 +70,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-      {/* 1. Axioma da Despensa Básica Assumida */}
-      <div className="bg-theme-card border border-theme-subtle rounded-2xl p-4 card-shadow transition-colors">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-start space-x-3 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-xs sm:text-sm font-bold text-theme-main flex items-center">
-                Axioma da Despensa Básica
-              </h2>
-              <p className="text-[11px] sm:text-xs text-theme-muted mt-0.5 leading-snug">
-                Assume que você já possui sal, óleo, alho, cebola, açúcar e vinagre. Zero fricção de cadastro.
-              </p>
-            </div>
-          </div>
 
-          <label className="relative inline-flex items-center cursor-pointer shrink-0 touch-target" title="Alternar premissa da despensa básica">
-            <input
-              type="checkbox"
-              checked={assumeBasicStaples}
-              onChange={(e) => onToggleAssumeStaples(e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 relative bg-theme-card-subtle peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-track border border-theme-subtle"></div>
-          </label>
-        </div>
-      </div>
 
       {/* 2. Bancada de Perecíveis (Chips com Lei de Fitts e Ações Rápidas) */}
       <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-4 card-shadow transition-colors">
@@ -162,33 +134,35 @@ export const PantryView: React.FC<PantryViewProps> = ({
           ))}
         </div>
 
-        {/* Grade de Chips de Toque Amplo (min-h-[44px]) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5">
-          {filteredPantryItems.map((item) => {
-            const isChecked = item.inStock;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onTogglePantryItem(item)}
-                className={`flex items-center justify-between p-2.5 sm:p-3 rounded-xl border text-left transition select-none touch-target ${
-                  isChecked
-                    ? 'bg-theme-brand-subtle border-theme-brand text-theme-brand-text font-bold shadow-sm'
-                    : 'bg-theme-card hover:bg-theme-card-hover border-theme-subtle text-theme-main'
-                }`}
-              >
-                <span className="text-xs truncate mr-1.5">{item.name}</span>
-                <div
-                  className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border transition ${
+        {/* Grade de Chips de Toque Amplo (max-h contido com scroll interno) */}
+        <div className="max-h-[52vh] overflow-y-auto pr-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5">
+            {filteredPantryItems.map((item) => {
+              const isChecked = item.inStock;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onTogglePantryItem(item)}
+                  className={`flex items-center justify-between p-2.5 sm:p-3 rounded-xl border text-left transition select-none touch-target ${
                     isChecked
-                      ? 'bg-theme-brand border-theme-brand text-white'
-                      : 'border-theme-strong bg-theme-card-subtle'
+                      ? 'bg-theme-brand-subtle border-theme-brand text-theme-brand-text font-bold shadow-sm'
+                      : 'bg-theme-card hover:bg-theme-card-hover border-theme-subtle text-theme-main'
                   }`}
                 >
-                  {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                </div>
-              </button>
-            );
-          })}
+                  <span className="text-xs truncate mr-1.5">{item.name}</span>
+                  <div
+                    className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border transition ${
+                      isChecked
+                        ? 'bg-theme-brand border-theme-brand text-white'
+                        : 'border-theme-strong bg-theme-card-subtle'
+                    }`}
+                  >
+                    {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Input Rápido para Insumos Extras */}
@@ -197,7 +171,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
             type="text"
             value={newItemName}
             onChange={(e) => setNewItemName(e.target.value)}
-            placeholder="+ Adicionar outro ingrediente (ex: Espinafre, Bacon)..."
+            placeholder="+ Adicionar ingrediente (ex: Espinafre, Bacon)..."
             className="flex-1 bg-theme-card-subtle border border-theme-subtle rounded-xl px-3.5 py-2.5 text-xs text-theme-main placeholder:text-theme-dim focus:outline-none focus:border-theme-brand transition"
           />
           <button
@@ -208,6 +182,24 @@ export const PantryView: React.FC<PantryViewProps> = ({
             Adicionar
           </button>
         </form>
+
+        {/* Toggle de Ingredientes Básicos — rodapé discreto */}
+        <div className="pt-2 border-t border-theme-subtle flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] sm:text-xs text-theme-muted leading-snug">
+              <span className="font-semibold text-theme-main">Assumir itens básicos</span> — sal, óleo, alho, cebola, açúcar e vinagre sempre disponíveis
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer shrink-0 touch-target" title="Alternar premissa da despensa básica">
+            <input
+              type="checkbox"
+              checked={assumeBasicStaples}
+              onChange={(e) => onToggleAssumeStaples(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 relative bg-theme-card-subtle peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-track border border-theme-subtle"></div>
+          </label>
+        </div>
       </section>
 
       {/* 3. Resultados em Tempo Real: Sugestões Culinárias */}
@@ -317,9 +309,9 @@ export const PantryView: React.FC<PantryViewProps> = ({
                             onAddPantryItem(missing.name, missing.category);
                           }
                         }}
-                        className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center touch-target"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition touch-target"
                       >
-                        <Plus className="w-3 h-3 mr-1" />
+                        <Plus className="w-3 h-3" />
                         Tenho {missing.name}!
                       </button>
 

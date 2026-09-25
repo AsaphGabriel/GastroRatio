@@ -21,11 +21,11 @@ import {
 
 interface ScaleViewProps {
   recipe: Recipe;
-  onBackToPantry: () => void;
+  onBackToRecipes: () => void;
   onOpenInBakers?: (recipe: Recipe) => void;
 }
 
-export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, onOpenInBakers }) => {
+export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, onOpenInBakers }) => {
   const [scaleMode, setScaleMode] = useState<'multiplier' | 'anchor'>('multiplier');
   const [currentMultiplier, setCurrentMultiplier] = useState<number>(1.0);
   const [anchorId, setAnchorId] = useState<string>(recipe.ingredients[0]?.id || '');
@@ -93,6 +93,20 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
     return ScaleRecipeUseCase.execute(patchedRecipe, scaleOptions);
   }, [patchedRecipe, scaleOptions]);
 
+  // Peso total e por porção (para exibir na header — elimina ambiguidade de "6 porções")
+  const totalWeightGrams = useMemo(() => {
+    return scaledResult.scaledIngredients.reduce((sum, ing) => {
+      const conv = ConvertUnitsUseCase.execute(ing.name, ing.amount, ing.unit);
+      return sum + conv.grams.toNumber();
+    }, 0);
+  }, [scaledResult.scaledIngredients]);
+
+  const weightPerPortionGrams = useMemo(() => {
+    const portions = scaledResult.recipe.baseYield;
+    if (!portions || portions <= 0) return null;
+    return Math.round(totalWeightGrams / portions);
+  }, [totalWeightGrams, scaledResult.recipe.baseYield]);
+
   const handleToggleChecked = (id: string) => {
     setCheckedIngredients((prev) => ({ ...prev, [id]: !prev[id] }));
   };
@@ -113,11 +127,11 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
       {/* 1. Barra Superior com Retorno e Wake Lock */}
       <div className="flex items-center justify-between gap-2">
         <button
-          onClick={onBackToPantry}
+          onClick={onBackToRecipes}
           className="flex items-center text-xs font-semibold text-theme-muted hover:text-theme-main transition touch-target"
         >
           <ArrowLeft className="w-4 h-4 mr-1.5 shrink-0" />
-          <span>Voltar para Bancada</span>
+          <span>Voltar às Receitas</span>
         </button>
 
         {/* Trava de Tela (Wake Lock) */}
@@ -150,7 +164,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div>
             <span className="text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full bg-theme-brand-subtle text-theme-brand font-bold uppercase tracking-wider">
-              Modo Balança de Precisão
+              Modo Cozinha
             </span>
             <h1 className="text-lg sm:text-2xl font-black text-theme-main mt-1.5 leading-tight">
               {recipe.title}
@@ -158,6 +172,15 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
             <p className="text-xs text-theme-muted mt-1 leading-relaxed">
               {recipe.description}
             </p>
+            {/* Peso total e por porção */}
+            {totalWeightGrams > 0 && (
+              <p className="text-[11px] text-theme-dim mt-1.5 font-medium">
+                Peso total: ~{Math.round(totalWeightGrams)}g
+                {weightPerPortionGrams !== null && (
+                  <span> · ~{weightPerPortionGrams}g por {recipe.yieldUnit.replace(/s$/, '')}</span>
+                )}
+              </p>
+            )}
           </div>
 
           {recipe.isBakingRecipe && onOpenInBakers && (
@@ -219,11 +242,14 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
             </div>
           </div>
 
-          {/* Fixação por Ingrediente Âncora */}
-          <div className="bg-theme-card-subtle border border-theme-subtle rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          {/* Ajustar a partir de uma sobra ou embalagem fechada */}
+          <div className="bg-theme-card-subtle border border-theme-subtle rounded-xl p-3 flex flex-col gap-2">
             <div className="flex items-center space-x-2">
               <Anchor className="w-4 h-4 text-theme-brand shrink-0" />
-              <span className="text-xs font-semibold text-theme-main">Fixar por Ingrediente Âncora:</span>
+              <div>
+                <span className="text-xs font-semibold text-theme-main">Tenho uma quantidade específica</span>
+                <p className="text-[11px] text-theme-muted leading-snug">Ex: tenho apenas 350g de frango. A receita inteira se ajusta.</p>
+              </div>
             </div>
 
             <div className="flex items-center space-x-2 flex-wrap gap-2">
@@ -268,7 +294,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
       <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-3 card-shadow">
         <div className="flex items-center justify-between pb-2 border-b border-theme-subtle">
           <div>
-            <h2 className="text-sm sm:text-base font-bold text-theme-main">Pesos na Balança Digital</h2>
+            <h2 className="text-sm sm:text-base font-bold text-theme-main">Ingredientes e Pesos</h2>
             <p className="text-[11px] sm:text-xs text-theme-muted">Zere a balança (Tara) a cada ingrediente pesado:</p>
           </div>
           <span className="text-xs text-theme-brand font-mono font-bold bg-theme-brand-subtle px-2 py-0.5 rounded-lg">
@@ -418,9 +444,9 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToPantry, on
         <div 
           onTouchStart={handleTouchStart} 
           onTouchEnd={handleTouchEnd}
-          className="bg-theme-card-subtle border border-theme-subtle rounded-xl p-4 sm:p-5 min-h-[90px] flex items-center select-none"
+          className="bg-theme-card-subtle border border-theme-subtle rounded-xl p-4 sm:p-6 min-h-[110px] flex items-center select-none"
         >
-          <p className="text-sm sm:text-base text-theme-main font-medium leading-relaxed">
+          <p className="text-base sm:text-lg text-theme-main font-medium leading-relaxed">
             {recipe.steps[activeStepIndex]}
           </p>
         </div>
