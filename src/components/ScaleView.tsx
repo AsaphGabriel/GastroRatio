@@ -4,6 +4,7 @@ import { ScaleRecipeUseCase, ScaleOptions } from '../domain/use-cases/ScaleRecip
 import { ConvertUnitsUseCase } from '../domain/use-cases/ConvertUnits.js';
 import { useWakeLock } from '../hooks/useWakeLock.js';
 import { findChemicalSubstitution } from '../domain/index.js';
+import { formatHouseholdFraction } from '../utils/fractions.js';
 import {
   Lock,
   Unlock,
@@ -132,9 +133,9 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
     if (mode === 'household') {
       if (ing.unit === 'unit') return { amount: ing.amount, unit: 'unidades' };
       const ml = conv.milliliters ? conv.milliliters.toNumber() : g; // fallback 1g=1ml
-      if (ml >= 240) return { amount: (ml / 240).toFixed(1).replace('.0', ''), unit: 'xícaras' };
-      if (ml >= 15) return { amount: (ml / 15).toFixed(1).replace('.0', ''), unit: 'colheres (sopa)' };
-      if (ml >= 5) return { amount: (ml / 5).toFixed(1).replace('.0', ''), unit: 'colheres (chá)' };
+      if (ml >= 60) return { amount: formatHouseholdFraction(ml / 240), unit: 'xícaras' };
+      if (ml >= 15) return { amount: formatHouseholdFraction(ml / 15), unit: 'colheres (sopa)' };
+      if (ml >= 2.5) return { amount: formatHouseholdFraction(ml / 5), unit: 'colheres (chá)' };
       return { amount: Math.round(g), unit: 'g' };
     }
 
