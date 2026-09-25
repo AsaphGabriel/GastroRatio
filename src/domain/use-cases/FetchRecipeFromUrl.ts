@@ -7,7 +7,29 @@ export class FetchRecipeFromUrlUseCase {
   }
 
   public static async extractRawTextFromUrl(url: string): Promise<string> {
-    // 1. Tenta corsproxy.io (mais rápido, suporta sites bloqueados)
+    // 1. Tenta usar o r.jina.ai (Bypass nativo de Cloudflare e conversão direta pra Markdown)
+    try {
+      const jinaUrl = `https://r.jina.ai/${url}`;
+      const response = await fetch(jinaUrl, {
+        headers: {
+          'Accept': 'text/plain',
+          'X-Return-Format': 'markdown'
+        }
+      });
+      if (response.ok) {
+        let markdown = await response.text();
+        if (markdown && markdown.length > 50) {
+          // Limpa imagens e links do Markdown para não confundir o parser offline
+          markdown = markdown.replace(/!\[.*?\]\(.*?\)/g, '');
+          markdown = markdown.replace(/\[(.*?)\]\(.*?\)/g, '$1');
+          return `${markdown}\n\nFonte: ${url}`;
+        }
+      }
+    } catch (e) {
+      console.warn("Jina proxy failed, falling back to html proxies...", e);
+    }
+
+    // 2. Fallback para corsproxy.io (mais rápido, extração JSON-LD em sites permitidos)
     let proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
     let html = '';
     
@@ -16,21 +38,20 @@ export class FetchRecipeFromUrlUseCase {
       if (!response.ok) throw new Error('CORSProxy failed');
       html = await response.text();
     } catch (e) {
-      // 2. Fallback para allorigins.win
+      // 3. Fallback para allorigins.win
       try {
         proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
         let response = await fetch(proxyUrl);
         if (!response.ok) throw new Error(`Falha ao acessar a URL.`);
         html = await response.text();
       } catch (err: any) {
-        throw new Error(`Erro de conexão com o site (CORS/Bloqueio). Tente copiar e colar o texto da receita manualmente.`);
+        throw new Error(`Erro de conexão com o site (CORS/Bloqueio). A URL alvo está protegida. Copie e cole o texto manualmente.`);
       }
     }
 
     try {
       return this.parseJsonLd(html, url);
     } catch (e: any) {
-      // Fallback: Se não encontrou schema JSON-LD, extrai o body como texto bruto!
       return this.extractFallbackText(html, url);
     }
   }
