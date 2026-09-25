@@ -24,6 +24,43 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
   const [isLoadingLocal, setIsLoadingLocal] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [warningMsg, setWarningMsg] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const processPdf = async (file: File) => {
+    try {
+      setIsLoadingLocal(true);
+      setErrorMsg(null);
+      const { ExtractTextFromPdfUseCase } = await import('../domain/use-cases/ExtractTextFromPdf.js');
+      const text = await ExtractTextFromPdfUseCase.execute(file);
+      setRawText(text.substring(0, 5000));
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('Erro ao ler PDF. Ele pode ser uma imagem escaneada ou estar protegido.');
+    } finally {
+      setIsLoadingLocal(false);
+    }
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const onDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const onDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type === 'application/pdf') {
+      await processPdf(file);
+    } else if (file) {
+      setErrorMsg('Por favor, envie apenas arquivos PDF.');
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -156,19 +193,41 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
             </div>
           )}
 
-          {/* Área de Colagem */}
-          <div>
-            <label className="text-xs text-theme-main font-bold block mb-1.5">
-              Link ou Texto da Receita:
-            </label>
+          {/* Área de Colagem e Drop */}
+          <div 
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            className={`relative rounded-2xl overflow-hidden border-2 transition-colors duration-200 ${
+              isDragging ? 'border-theme-brand bg-theme-brand-subtle/50' : 'border-transparent'
+            }`}
+          >
+            <div className="absolute top-2 right-2 z-10 flex items-center">
+              <label className="cursor-pointer bg-theme-card border border-theme-subtle hover:bg-theme-card-subtle text-theme-main px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm transition flex items-center gap-1.5">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                Ler PDF
+                <input type="file" accept="application/pdf" className="hidden" onChange={(e) => {
+                  if (e.target.files?.[0]) processPdf(e.target.files[0]);
+                  e.target.value = '';
+                }} />
+              </label>
+            </div>
+            
             <textarea
               rows={5}
               maxLength={5000}
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              placeholder="Cole aqui a URL do site ou texto (máx 5000 caracteres)"
-              className="w-full bg-theme-card-subtle border border-theme-subtle rounded-2xl p-3.5 text-xs text-theme-main placeholder:text-theme-dim focus:outline-none focus:border-theme-brand font-mono leading-relaxed transition resize-none"
+              placeholder="Cole aqui a URL, texto ou arraste um PDF (máx 5000 caracteres)"
+              className="w-full bg-theme-card-subtle border border-theme-subtle rounded-2xl p-3.5 pt-10 text-xs text-theme-main placeholder:text-theme-dim focus:outline-none focus:border-theme-brand font-mono leading-relaxed transition resize-none"
             />
+            {isDragging && (
+              <div className="absolute inset-0 z-20 bg-theme-brand/10 backdrop-blur-[1px] flex items-center justify-center pointer-events-none">
+                <div className="bg-theme-brand text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg">
+                  Solte o PDF para extrair o texto
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Botões de Ação em Cascata */}
