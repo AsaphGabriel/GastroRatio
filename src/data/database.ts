@@ -1,5 +1,5 @@
 import { Dexie, type Table } from 'dexie';
-import { Recipe, RecipeSchema, PantryItem } from '../domain/schemas/recipe.schema.js';
+import { Recipe, RecipeSchema, PantryItem, IngredientCategory } from '../domain/schemas/recipe.schema.js';
 import { SEED_CANONICAL_RECIPES } from './seed-recipes.js';
 
 export interface AppSetting {
@@ -46,7 +46,7 @@ export class GastroRatioDatabase extends Dexie {
               uniqueIngredients.set(normalized, {
                 id: `p-seed-${idCounter++}`,
                 name: ing.name.trim(),
-                category: 'staple_seasoning',
+                category: ing.category || 'vegetable',
                 inStock: false
               });
             }
@@ -58,6 +58,7 @@ export class GastroRatioDatabase extends Dexie {
         // Preferência padrão: Despensa Básica Assumida = ON
         await this.settings.put({ key: 'assume_basic_staples', value: true });
         await this.settings.put({ key: 'pantry_clean_default_v3', value: true });
+        await this.settings.put({ key: 'pantry_category_fix_v4', value: true });
       } else {
         // Migração para limpar seleções prévias indesejadas em bancos locais existentes
         const isCleaned = await this.settings.get('pantry_clean_default_v3');
@@ -69,6 +70,30 @@ export class GastroRatioDatabase extends Dexie {
             }
           }
           await this.settings.put({ key: 'pantry_clean_default_v3', value: true });
+        }
+
+        // Migração para corrigir as categorias da despensa que foram hardcoded como 'staple_seasoning'
+        const isCategoriesFixed = await this.settings.get('pantry_category_fix_v4');
+        if (!isCategoriesFixed) {
+          const allRecipes = await this.recipes.toArray();
+          const categoryMap = new Map<string, string>();
+          for (const recipe of allRecipes) {
+            for (const ing of recipe.ingredients) {
+              const norm = ing.name.toLowerCase().trim();
+              if (!categoryMap.has(norm)) {
+                categoryMap.set(norm, ing.category || 'vegetable');
+              }
+            }
+          }
+          const allPantry = await this.pantry.toArray();
+          for (const item of allPantry) {
+            const norm = item.name.toLowerCase().trim();
+            const correctCategory = categoryMap.get(norm) as IngredientCategory | undefined;
+            if (correctCategory && item.category !== correctCategory) {
+              await this.pantry.update(item.id, { category: correctCategory });
+            }
+          }
+          await this.settings.put({ key: 'pantry_category_fix_v4', value: true });
         }
       }
     });
@@ -95,7 +120,7 @@ export class GastroRatioDatabase extends Dexie {
           newPantryItems.push({
             id: `p-import-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             name: name.charAt(0).toUpperCase() + name.slice(1),
-            category: 'staple_seasoning',
+            category: ingredient.category || 'vegetable',
             inStock: false
           });
         }
@@ -104,6 +129,15 @@ export class GastroRatioDatabase extends Dexie {
       if (newPantryItems.length > 0) {
         await this.pantry.bulkAdd(newPantryItems);
       }
+    });
+  }
+
+  /**
+   * Exclui atomaticamente uma receita do catálogo.
+   */
+  async deleteRecipeTransaction(id: string): Promise<void> {
+    await this.transaction('rw', [this.recipes], async () => {
+      await this.recipes.delete(id);
     });
   }
 

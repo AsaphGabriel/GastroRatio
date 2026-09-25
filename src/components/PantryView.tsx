@@ -60,7 +60,10 @@ export const PantryView: React.FC<PantryViewProps> = ({
     { id: 'protein', label: 'Proteínas' },
     { id: 'vegetable', label: 'Vegetais' },
     { id: 'dairy', label: 'Laticínios' },
-    { id: 'flour_grain', label: 'Grãos & Farinhas' }
+    { id: 'flour_grain', label: 'Grãos & Farinhas' },
+    { id: 'staple_seasoning', label: 'Temperos & Básicos' },
+    { id: 'fat_oil', label: 'Gorduras & Óleos' },
+    { id: 'liquid', label: 'Líquidos' }
   ];
 
   const filteredPantryItems = useMemo(() => {

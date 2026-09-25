@@ -1,17 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { Recipe } from '../domain/schemas/recipe.schema.js';
-import { Search, Clock, ChefHat, RotateCcw, Tag } from 'lucide-react';
+import { Search, Clock, ChefHat, RotateCcw, Tag, Trash2 } from 'lucide-react';
 
 interface RecipesListViewProps {
   recipes: Recipe[];
   onSelectRecipe: (recipe: Recipe) => void;
   onResetToSeed: () => void;
+  onDeleteRecipe: (id: string) => void;
 }
 
 export const RecipesListView: React.FC<RecipesListViewProps> = ({
   recipes,
   onSelectRecipe,
-  onResetToSeed
+  onResetToSeed,
+  onDeleteRecipe
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('all');
@@ -119,13 +121,26 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
               <span className="text-xs text-theme-dim">
                 {recipe.ingredients.length} ingredientes
               </span>
-              <button
-                onClick={() => onSelectRecipe(recipe)}
-                className="bg-theme-card hover:bg-theme-brand hover:text-white text-theme-main border border-theme-subtle hover:border-theme-brand px-3.5 py-1.5 rounded-xl text-xs font-bold transition touch-target flex items-center shadow-sm"
-              >
-                <ChefHat className="w-3.5 h-3.5 mr-1.5" />
-                Modo Cozinha
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    if (confirm(`Excluir receita "${recipe.title}"? Ela será removida da sua lista local.`)) {
+                      onDeleteRecipe(recipe.id);
+                    }
+                  }}
+                  className="bg-transparent hover:bg-rose-500/10 text-theme-dim hover:text-rose-500 p-1.5 rounded-xl transition touch-target flex items-center justify-center"
+                  title="Excluir receita"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onSelectRecipe(recipe)}
+                  className="bg-theme-card hover:bg-theme-brand hover:text-white text-theme-main border border-theme-subtle hover:border-theme-brand px-3.5 py-1.5 rounded-xl text-xs font-bold transition touch-target flex items-center shadow-sm"
+                >
+                  <ChefHat className="w-3.5 h-3.5 mr-1.5" />
+                  Modo Cozinha
+                </button>
+              </div>
             </div>
           </div>
         ))}

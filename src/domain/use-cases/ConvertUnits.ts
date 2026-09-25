@@ -115,11 +115,25 @@ export class ConvertUnitsUseCase {
 
       case 'unit': {
         // Unidades discretas (ex: 2 ovos ~100g, 1 limão ~60g)
-        // Se for ovo, estima ~50g por ovo se não especificado
         let estimatedGrams = amount;
-        if (ingredientName.toLowerCase().includes('ovo')) {
+        const nameLower = ingredientName.toLowerCase();
+        
+        if (nameLower.includes('ovo')) {
           estimatedGrams = amount * 50;
+        } else if (nameLower.includes('lata')) {
+          estimatedGrams = amount * 300; // lata média (ex: milho, ervilha, leite condensado)
+        } else if (nameLower.includes('caixa') || nameLower.includes('caixinha')) {
+          estimatedGrams = amount * 200; // caixinha média (ex: creme de leite)
+        } else if (nameLower.includes('dente')) {
+          estimatedGrams = amount * 5; // dente de alho
+        } else if (nameLower.includes('limão') || nameLower.includes('cebola')) {
+          estimatedGrams = amount * 100;
+        } else if (nameLower.includes('cenoura') || nameLower.includes('tomate')) {
+          estimatedGrams = amount * 150;
+        } else if (nameLower.includes('batata')) {
+          estimatedGrams = amount * 200;
         }
+
         return {
           grams: Grams.of(estimatedGrams),
           originalAmount: amount,

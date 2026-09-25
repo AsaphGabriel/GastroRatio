@@ -205,10 +205,10 @@ export class SanitizeAndParseRecipeUseCase {
             i++;
           }
         } else {
-          // Entrar em ingredientes sem cabeçalho explícito SOMENTE se for um item culinário legítimo
           const isStrictIngredientLine =
             (/^[•\-*]\s*\d+/i.test(line) ||
-              /^\d+[\d\/\.,\s]*(?:xícara|colher|copo|g|kg|ml|l|unidade|lata|pitada)\b/i.test(line)) &&
+              /^\d+[\d\/\.,\s]*(?:xícara|colher|copo|g|kg|ml|l|unidade|lata|caixa|pitada)\b/i.test(line) ||
+              /^.+?:\s*\d+[\d\/\.,\s]*(?:xícara|colher|copo|g|kg|ml|l|unidade|lata|caixa|pitada)?\b/i.test(line)) &&
             !/(?:minuto|minutos|ano|anos|hora|horas|dia|dias)\b/i.test(line);
 
           if (isStrictIngredientLine) {
@@ -223,7 +223,8 @@ export class SanitizeAndParseRecipeUseCase {
           // Filtra linhas vazias ou de navegação residual
           if (
             /^\d|xícara|colher|pitada|copo|[•\-*]/i.test(item) ||
-            /^(sal|açúcar|óleo|azeite|farinha|leite|ovo|ovos|manteiga|fermento)\b/i.test(item)
+            /^(sal|açúcar|óleo|azeite|farinha|leite|ovo|ovos|manteiga|fermento)\b/i.test(item) ||
+            /^.+?:\s*\d+/i.test(item)
           ) {
             ingredientLines.push(item);
           }
@@ -250,7 +251,7 @@ export class SanitizeAndParseRecipeUseCase {
     // Fallback heurístico caso não haja cabeçalhos no texto
     if (ingredientLines.length === 0 && stepLines.length === 0) {
       for (const line of lines) {
-        if (/^\d|xícara|colher|pitada|copo|[•\-*]/i.test(line)) {
+        if (/^\d|xícara|colher|pitada|copo|[•\-*]/i.test(line) || /^.+?:\s*\d+/i.test(line)) {
           ingredientLines.push(line);
         } else if (line.length > 20) {
           stepLines.push(line);
@@ -268,19 +269,38 @@ export class SanitizeAndParseRecipeUseCase {
       try {
         const parsed = parse(normalizedLine, { language: { from: 'pt', to: 'pt' } });
 
-        if (parsed && parsed.ingredient) {
-          const rawAmount = parsed.quantity ? parseFloat(parsed.quantity) : 1;
-          const unit = mapToUnitType(parsed.unit, parsed.symbol);
+        let finalName = parsed?.ingredient;
+        let finalAmount = parsed?.quantity ? parseFloat(parsed.quantity) : null;
+        let finalUnit = parsed?.unit || parsed?.symbol || null;
 
-          // Remove qualificadores e parênteses residuais do nome (ex: "açúcar (chá)" -> "açúcar")
-          let cleanIngredientName = parsed.ingredient
+        // Regex Fallback (Trata "Ingrediente: 500g" ou falhas da biblioteca)
+        if (!finalName) {
+          const colonMatch = normalizedLine.match(/^(.+?):\s*(\d+(?:[\.,]\d+)?)\s*(g|kg|ml|l|xícara|colher|copo|lata|caixa|unidade|pitada)?s?$/i);
+          if (colonMatch) {
+            finalName = colonMatch[1].trim();
+            finalAmount = parseFloat(colonMatch[2].replace(',', '.'));
+            finalUnit = colonMatch[3] || 'unit';
+          } else {
+            const startMatch = normalizedLine.match(/^(\d+(?:[\.,]\d+)?)\s*(g|kg|ml|l|xícara|colher|copo|lata|caixa|unidade|pitada)?s?\s+(?:de\s+)?(.+)$/i);
+            if (startMatch) {
+              finalAmount = parseFloat(startMatch[1].replace(',', '.'));
+              finalUnit = startMatch[2] || 'unit';
+              finalName = startMatch[3].trim();
+            }
+          }
+        }
+
+        if (finalName) {
+          const rawAmount = finalAmount || 1;
+          const unit = mapToUnitType(finalUnit, finalUnit);
+
+          let cleanIngredientName = finalName
             .replace(/\s*\((?:chá|sopa|café|sobremesa|opcional|a gosto)\)/gi, '')
             .replace(/^[•\-*]\s*/, '')
             .trim();
 
           const { category, isStaple } = categorizeIngredient(cleanIngredientName);
 
-          // Converte para gramas ou mililitros
           const conversion = ConvertUnitsUseCase.execute(cleanIngredientName, rawAmount, unit);
 
           ingredients.push({

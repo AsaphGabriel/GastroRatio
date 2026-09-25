@@ -16,17 +16,20 @@ import {
   CheckCircle2,
   Circle,
   FlaskConical,
-  Croissant
+  Croissant,
+  Trash2
 } from 'lucide-react';
 
 interface ScaleViewProps {
   recipe: Recipe;
   onBackToRecipes: () => void;
   onOpenInBakers?: (recipe: Recipe) => void;
+  onDeleteRecipe?: () => void;
 }
 
-export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, onOpenInBakers }) => {
+export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, onOpenInBakers, onDeleteRecipe }) => {
   const [scaleMode, setScaleMode] = useState<'multiplier' | 'anchor'>('multiplier');
+  const [displayMode, setDisplayMode] = useState<'precision' | 'smart' | 'household'>('smart');
   const [currentMultiplier, setCurrentMultiplier] = useState<number>(1.0);
   const [anchorId, setAnchorId] = useState<string>(recipe.ingredients[0]?.id || '');
   const [anchorGramsInput, setAnchorGramsInput] = useState<number>(() => {
@@ -122,6 +125,32 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
     setCurrentMultiplier(newPortions / recipe.baseYield);
   };
 
+  const formatMeasurement = (ing: RecipeIngredient, mode: 'precision' | 'smart' | 'household'): { amount: string | number, unit: string } => {
+    const conv = ConvertUnitsUseCase.execute(ing.name, ing.amount, ing.unit);
+    const g = conv.grams.toNumber();
+    
+    if (mode === 'household') {
+      if (ing.unit === 'unit') return { amount: ing.amount, unit: 'unidades' };
+      const ml = conv.milliliters ? conv.milliliters.toNumber() : g; // fallback 1g=1ml
+      if (ml >= 240) return { amount: (ml / 240).toFixed(1).replace('.0', ''), unit: 'xícaras' };
+      if (ml >= 15) return { amount: (ml / 15).toFixed(1).replace('.0', ''), unit: 'colheres (sopa)' };
+      if (ml >= 5) return { amount: (ml / 5).toFixed(1).replace('.0', ''), unit: 'colheres (chá)' };
+      return { amount: Math.round(g), unit: 'g' };
+    }
+
+    if (mode === 'smart' && ing.category === 'liquid') {
+      const ml = conv.milliliters ? conv.milliliters.toNumber() : g;
+      if (ml >= 1000) return { amount: (ml / 1000).toFixed(2).replace(/\.?0+$/, ''), unit: 'L' };
+      return { amount: Math.round(ml), unit: 'ml' };
+    }
+
+    if (mode === 'smart' && g >= 1000) {
+      return { amount: (g / 1000).toFixed(2).replace(/\.?0+$/, ''), unit: 'kg' };
+    }
+
+    return { amount: Math.round(g), unit: 'g' };
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
       {/* 1. Barra Superior com Retorno e Wake Lock */}
@@ -191,15 +220,30 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
             )}
           </div>
 
-          {recipe.isBakingRecipe && onOpenInBakers && (
-            <button
-              onClick={() => onOpenInBakers(recipe)}
-              className="bg-amber-500/15 hover:bg-amber-500/25 text-theme-brand-text dark:text-amber-300 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition touch-target flex items-center shrink-0 self-start"
-            >
-              <Croissant className="w-4 h-4 mr-1.5" />
-              <span>Modo Padeiro →</span>
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {onDeleteRecipe && (
+              <button
+                onClick={() => {
+                  if (confirm(`Excluir receita "${recipe.title}"? Ela será removida da sua lista local.`)) {
+                    onDeleteRecipe();
+                  }
+                }}
+                className="bg-transparent hover:bg-rose-500/10 text-theme-dim hover:text-rose-500 px-2.5 py-2 rounded-xl transition touch-target flex items-center justify-center border border-transparent hover:border-rose-500/30 self-start shrink-0"
+                title="Excluir receita"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+            {recipe.isBakingRecipe && onOpenInBakers && (
+              <button
+                onClick={() => onOpenInBakers(recipe)}
+                className="bg-amber-500/15 hover:bg-amber-500/25 text-theme-brand-text dark:text-amber-300 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition touch-target flex items-center shrink-0 self-start"
+              >
+                <Croissant className="w-4 h-4 mr-1.5" />
+                <span>Modo Padeiro →</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Painel de Redimensionamento Proporcional */}
@@ -300,22 +344,53 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
 
       {/* 3. Tabela de Pesagem na Balança Digital */}
       <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-3 card-shadow">
-        <div className="flex items-center justify-between pb-2 border-b border-theme-subtle">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-theme-subtle">
           <div>
-            <h2 className="text-sm sm:text-base font-bold text-theme-main">Ingredientes e Pesos</h2>
+            <h2 className="text-sm sm:text-base font-bold text-theme-main">Ingredientes e Medidas</h2>
             <p className="text-[11px] sm:text-xs text-theme-muted">Zere a balança (Tara) a cada ingrediente pesado:</p>
           </div>
-          <span className="text-xs text-theme-brand font-mono font-bold bg-theme-brand-subtle px-2 py-0.5 rounded-lg">
-            Fator: {scaledResult.scalingFactor}x
-          </span>
+          
+          <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
+            <button
+              onClick={() => setDisplayMode('precision')}
+              className={`text-[10px] px-2.5 py-1.5 rounded-lg font-bold transition touch-target shrink-0 ${
+                displayMode === 'precision'
+                  ? 'bg-theme-brand text-white shadow-sm'
+                  : 'bg-theme-card-subtle border border-theme-subtle text-theme-muted hover:text-theme-main'
+              }`}
+            >
+              ⚖️ g / kg
+            </button>
+            <button
+              onClick={() => setDisplayMode('smart')}
+              className={`text-[10px] px-2.5 py-1.5 rounded-lg font-bold transition touch-target shrink-0 ${
+                displayMode === 'smart'
+                  ? 'bg-theme-brand text-white shadow-sm'
+                  : 'bg-theme-card-subtle border border-theme-subtle text-theme-muted hover:text-theme-main'
+              }`}
+            >
+              🥛 Misto Inteligente
+            </button>
+            <button
+              onClick={() => setDisplayMode('household')}
+              className={`text-[10px] px-2.5 py-1.5 rounded-lg font-bold transition touch-target shrink-0 ${
+                displayMode === 'household'
+                  ? 'bg-theme-brand text-white shadow-sm'
+                  : 'bg-theme-card-subtle border border-theme-subtle text-theme-muted hover:text-theme-main'
+              }`}
+            >
+              🥄 Medidas Caseiras
+            </button>
+          </div>
         </div>
 
         <div className="space-y-2">
           {scaledResult.scaledIngredients.map((ing: RecipeIngredient) => {
             const isDone = !!checkedIngredients[ing.id];
             const originalIng = recipe.ingredients.find(o => o.id === ing.id) || ing;
-            const sub = findChemicalSubstitution(originalIng.name);
+            const sub = findChemicalSubstitution(originalIng.name, recipe.isBakingRecipe);
             const isSubOpen = expandedSubId === ing.id;
+            const measurement = formatMeasurement(ing, displayMode);
 
             return (
               <div
@@ -367,10 +442,10 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                   </div>
 
                   <div className="text-right shrink-0">
-                    <span className={`text-base sm:text-xl font-black text-theme-brand scale-number ${isDone ? 'line-through text-theme-dim' : ''}`}>
-                      {ing.amount}
+                    <span className={`text-base sm:text-xl font-black text-theme-brand scale-number ${isDone ? 'line-through text-theme-dim' : ''}`} title={`${Math.round(ing.amount)} g`}>
+                      {measurement.amount}
                     </span>
-                    <span className="text-xs text-theme-dim ml-1 font-bold">{ing.unit}</span>
+                    <span className="text-xs text-theme-dim ml-1 font-bold">{measurement.unit}</span>
                   </div>
                 </div>
 

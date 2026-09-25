@@ -139,8 +139,33 @@ export const SettingsView: React.FC = () => {
 
         <form onSubmit={handleSaveApiKey} className="space-y-3 pt-1">
           <div>
-            <label className="text-xs text-theme-main font-semibold block mb-1">
-              Google Gemini API Key:
+            <label className="text-xs text-theme-main font-semibold flex items-center justify-between mb-1">
+              API Key (Gemini, Groq ou OpenAI):
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const text = await navigator.clipboard.readText();
+                    const trimmed = text.trim();
+                    if (trimmed.length > 30) {
+                      setApiKey(trimmed);
+                      const obfuscated = btoa(trimmed.split('').reverse().join(''));
+                      sessionStorage.setItem('gastroratio_gemini_api_key_v2', obfuscated);
+                      localStorage.removeItem('gastroratio_gemini_api_key_v2');
+                      localStorage.removeItem('gastroratio_gemini_api_key');
+                      setSavedSuccess(true);
+                      setTimeout(() => setSavedSuccess(false), 2500);
+                    } else {
+                      alert('A chave na área de transferência parece inválida ou curta demais.');
+                    }
+                  } catch (err) {
+                    alert('Não foi possível ler a área de transferência. Cole manualmente.');
+                  }
+                }}
+                className="text-[10px] text-theme-brand hover:underline font-bold"
+              >
+                📋 Colar e Salvar
+              </button>
             </label>
             <input
               type="password"
@@ -155,19 +180,71 @@ export const SettingsView: React.FC = () => {
             <p className="text-[11px] text-theme-dim">
               Deixe em branco para usar o parser determinístico local em 0ms.
             </p>
-            <button
-              type="submit"
-              className="bg-theme-brand hover:opacity-90 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center transition shadow-sm touch-target self-start sm:self-auto"
-            >
-              {savedSuccess ? (
-                <>
-                  <Check className="w-4 h-4 mr-1 text-white" />
-                  Salvo com Sucesso!
-                </>
-              ) : (
-                'Salvar Chave'
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  const key = apiKey.trim();
+                  if (!key) {
+                    alert('Cole uma chave primeiro.');
+                    return;
+                  }
+                  
+                  const isGroq = key.startsWith('gsk_');
+                  const isOpenAI = key.startsWith('sk-proj-') || key.startsWith('sk-ant-') || key.startsWith('sk-');
+                  
+                  let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${key}`;
+                  let method = 'POST';
+                  let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+                  let body = JSON.stringify({ contents: [{ parts: [{ text: 'ping' }] }] });
+                  let name = 'Gemini';
+
+                  if (isGroq) {
+                    url = 'https://api.groq.com/openai/v1/models';
+                    method = 'GET';
+                    headers = { 'Authorization': `Bearer ${key}` };
+                    body = '';
+                    name = 'Groq';
+                  } else if (isOpenAI) {
+                    url = 'https://api.openai.com/v1/models';
+                    method = 'GET';
+                    headers = { 'Authorization': `Bearer ${key}` };
+                    body = '';
+                    name = 'OpenAI';
+                  }
+
+                  try {
+                    const reqOptions: RequestInit = { method, headers };
+                    if (method === 'POST') reqOptions.body = body;
+                    const response = await fetch(url, reqOptions);
+                    
+                    if (response.ok) {
+                      alert(`🟢 Conexão validada! ${name} respondendo normalmente.`);
+                    } else {
+                      alert(`🔴 Falha na conexão com ${name}: HTTP ${response.status} — Chave inválida ou cota esgotada.`);
+                    }
+                  } catch (err: any) {
+                    alert(`🔴 Erro de rede: ${err.message}`);
+                  }
+                }}
+                className="bg-theme-card border border-theme-subtle hover:bg-theme-card-hover text-theme-main px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm touch-target shrink-0"
+              >
+                Testar Conexão
+              </button>
+              <button
+                type="submit"
+                className="bg-theme-brand hover:opacity-90 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center transition shadow-sm touch-target shrink-0"
+              >
+                {savedSuccess ? (
+                  <>
+                    <Check className="w-4 h-4 mr-1 text-white" />
+                    Salvo com Sucesso!
+                  </>
+                ) : (
+                  'Salvar Chave'
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </section>

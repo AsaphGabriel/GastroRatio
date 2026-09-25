@@ -18,11 +18,10 @@ export interface SousChefParseResult {
  * - Fix #8: IDs gerados via crypto.randomUUID() (criptograficamente seguros) [CWE-330]
  */
 export class GeminiSousChefAdapter {
-  // Migração para Gemini 3.5 Flash-Lite (modelo ativo e estável recomendado pelo Google em 2026)
-  private static readonly API_ENDPOINT =
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
+  private static readonly GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
+  private static readonly GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
+  private static readonly OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
 
-  // Fix #5: Timeout rígido de 20 segundos para chamadas externas (CWE-400 / Pilar 23)
   private static readonly FETCH_TIMEOUT_MS = 20_000;
 
   private static readonly SYSTEM_PROMPT = `Você é o Sous-Chef de engenharia culinária do GastroRatio.
@@ -109,36 +108,60 @@ Regras Inegociáveis:
 
     if (!key) {
       throw new Error(
-        'Chave da API do Gemini não configurada. Vá na aba Configurações para adicionar sua chave ou use a extração offline básica.'
+        'Chave da API não configurada. Vá na aba Configurações para adicionar sua chave ou use a extração offline básica.'
       );
     }
 
-    const requestBody = {
-      systemInstruction: {
-        parts: [{ text: this.SYSTEM_PROMPT }]
-      },
-      contents: [
-        {
-          role: 'user',
-          parts: userParts
+    const isGroq = key.startsWith('gsk_');
+    const isOpenAI = key.startsWith('sk-proj-') || key.startsWith('sk-ant-') || key.startsWith('sk-');
+    
+    let url = this.GEMINI_ENDPOINT + '?key=' + key;
+    let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    let requestBody: any = {};
+
+    if (isGroq || isOpenAI) {
+      url = isGroq ? this.GROQ_ENDPOINT : this.OPENAI_ENDPOINT;
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`
+      };
+      
+      let userContent = '';
+      for (const part of userParts) {
+        if (part.text) {
+          userContent += part.text + '\n';
+        } else if (part.inlineData) {
+          if (isGroq) throw new Error("Groq não suporta extração direta de PDF. Use Gemini ou extração offline.");
+          // OpenAI vision support for base64 would require formatting as data URL
+          userContent += ' [PDF data omitted, not supported yet for OpenAI in this view] ';
         }
-      ],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        temperature: 0.1
       }
-    };
+      
+      requestBody = {
+        model: isGroq ? 'llama-3.1-70b-versatile' : 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: this.SYSTEM_PROMPT },
+          { role: 'user', content: userContent }
+        ],
+        temperature: 0.1,
+        response_format: { type: 'json_object' }
+      };
+    } else {
+      headers = { 'Content-Type': 'application/json' };
+      requestBody = {
+        systemInstruction: { parts: [{ text: this.SYSTEM_PROMPT }] },
+        contents: [{ role: 'user', parts: userParts }],
+        generationConfig: { responseMimeType: 'application/json', temperature: 0.1 }
+      };
+    }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), GeminiSousChefAdapter.FETCH_TIMEOUT_MS);
+    const timeoutId = setTimeout(() => controller.abort(), this.FETCH_TIMEOUT_MS);
 
     try {
-      const response = await fetch(this.API_ENDPOINT, {
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': key
-        },
+        headers,
         body: JSON.stringify(requestBody),
         signal: controller.signal
       });
@@ -147,19 +170,22 @@ Regras Inegociáveis:
         let errorDetails = `HTTP ${response.status}`;
         try {
           const errData = await response.json();
-          if (errData?.error?.message) {
-            errorDetails += ` — ${errData.error.message}`;
-          }
-        } catch {
-          // Mantém fallback para o status HTTP se a resposta não for JSON
-        }
-        throw new Error(`[GeminiSousChef] Erro na API Gemini: ${errorDetails}`);
+          if (errData?.error?.message) errorDetails += ` — ${errData.error.message}`;
+        } catch {}
+        throw new Error(`[AiProvider] Erro na API: ${errorDetails}`);
       }
 
       const data = await response.json();
-      const rawJson = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      let rawJson = '';
+      if (isGroq || isOpenAI) {
+        rawJson = data.choices?.[0]?.message?.content;
+      } else {
+        rawJson = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      }
+
       if (!rawJson) {
-        throw new Error('[GeminiSousChef] Resposta vazia da API Gemini.');
+        throw new Error('[AiProvider] Resposta vazia da API.');
       }
 
       let cleanedJson = rawJson.trim();

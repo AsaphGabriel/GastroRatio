@@ -27,6 +27,8 @@ export const CANONICAL_CHEMICAL_SUBSTITUTIONS: readonly ChemicalSubstitution[] =
   {
     original: 'fermento químico',
     substitute: 'bicarbonato de sódio + suco de limão ou vinagre',
+    multiplier: 1.0,
+    overrideName: 'Bicarbonato + Limão/Vinagre',
     ratio: '1 colher de chá de bicarbonato + 1 colher de chá de limão/vinagre',
     physicalFunction: 'Agente de aeração química (geração de CO2)',
     explanation: 'O fermento em pó comercial é bicarbonato com um ácido seco (cremor tártaro). Ao juntar bicarbonato com ácido líquido (limão/vinagre), a reação de efervescência ocorre na hora; leve ao forno imediatamente.'
@@ -44,19 +46,23 @@ export const CANONICAL_CHEMICAL_SUBSTITUTIONS: readonly ChemicalSubstitution[] =
   {
     original: 'creme de leite',
     substitute: 'leite integral + manteiga derretida',
+    multiplier: 1.0,
+    overrideName: 'Leite + Manteiga Derretida',
     ratio: '3/4 xícara de leite + 1/4 xícara de manteiga derretida',
     physicalFunction: 'Emulsão gorda e textura sedosa',
     explanation: 'Restaura a concentração de gordura de ~20% a 25% típica do creme de leite de caixinha.'
   },
   {
-    original: 'ovos (em massas e bolos)',
+    original: 'ovo', // matches 'ovos' or 'ovo'
     substitute: 'aquafaba (água do grão de bico) ou banana nanica madura amassada',
+    multiplier: 1.0,
+    overrideName: 'Aquafaba / Banana',
     ratio: '3 colheres de sopa de aquafaba batida = 1 ovo; ou 1/2 banana = 1 ovo',
     physicalFunction: 'Agente ligante e emulsificante (lecitina)',
     explanation: 'A aquafaba imita as proteínas da clara com capacidade de aeração; a banana e compotas de maçã fornecem pectina para ligação estrutural.'
   },
   {
-    original: 'farinha de trigo (como espessante de molho)',
+    original: 'farinha de trigo', // changed from 'farinha de trigo (como espessante de molho)' to allow matching
     substitute: 'amido de milho (maizena)',
     multiplier: 0.5,
     overrideName: 'Amido de Milho',
@@ -67,15 +73,22 @@ export const CANONICAL_CHEMICAL_SUBSTITUTIONS: readonly ChemicalSubstitution[] =
   {
     original: 'leite de vaca',
     substitute: 'água morna + 1 colher de sopa de manteiga ou óleo',
+    multiplier: 1.0,
+    overrideName: 'Água + Manteiga/Óleo',
     ratio: '1:1 em volume',
     physicalFunction: 'Hidratação e fração lipídica',
     explanation: 'Para pães e tortas simples, a água substitui o leite perfeitamente, conferindo crosta mais crocante ao pão.'
   }
 ];
 
-export function findChemicalSubstitution(ingredientName: string): ChemicalSubstitution | undefined {
+export function findChemicalSubstitution(ingredientName: string, isBakingRecipe?: boolean): ChemicalSubstitution | undefined {
   const norm = ingredientName.toLowerCase().trim();
   return CANONICAL_CHEMICAL_SUBSTITUTIONS.find(
-    (sub) => norm.includes(sub.original) || sub.original.includes(norm)
+    (sub) => {
+      const matches = norm.includes(sub.original) || sub.original.includes(norm);
+      if (!matches) return false;
+      if (sub.original === 'farinha de trigo' && isBakingRecipe) return false;
+      return true;
+    }
   );
 }

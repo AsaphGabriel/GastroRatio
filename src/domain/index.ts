@@ -9,5 +9,5 @@ export * from './use-cases/CalculateBakersPercentage.js';
 export * from './use-cases/ScaleRecipe.js';
 export * from './use-cases/FindRecipesByPantry.js';
 export * from './use-cases/SanitizeAndParseRecipe.js';
-export * from './use-cases/GeminiSousChefAdapter.js';
+export * from './use-cases/AiProviderAdapter.js';
 export * from './constants/chemical-substitutions.js';

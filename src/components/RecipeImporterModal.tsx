@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Recipe } from '../domain/schemas/recipe.schema.js';
 import { SanitizeAndParseRecipeUseCase } from '../domain/use-cases/SanitizeAndParseRecipe.js';
 import { FetchRecipeFromUrlUseCase } from '../domain/use-cases/FetchRecipeFromUrl.js';
-import { GeminiSousChefAdapter } from '../domain/use-cases/GeminiSousChefAdapter.js';
-import { X, Sparkles, Zap, AlertCircle, Save, FileText } from 'lucide-react';
+import { GeminiSousChefAdapter } from '../domain/use-cases/AiProviderAdapter.js';
+import { X, Sparkles, Zap, AlertCircle, Save, FileText, Trash2 } from 'lucide-react';
 
 interface RecipeImporterModalProps {
   isOpen: boolean;
@@ -226,7 +226,23 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
               isDragging ? 'border-theme-brand bg-theme-brand-subtle/50' : 'border-transparent'
             }`}
           >
-            <div className="absolute top-2 right-2 z-10 flex items-center">
+            <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
+              {rawText && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRawText('');
+                    setPdfFile(null);
+                    setParsedRecipe(null);
+                    setErrorMsg(null);
+                    setWarningMsg(null);
+                  }}
+                  className="bg-theme-card border border-theme-subtle hover:bg-rose-500/10 hover:text-rose-500 text-theme-muted px-2.5 py-1.5 rounded-lg text-[10px] font-bold shadow-sm transition flex items-center gap-1"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Limpar
+                </button>
+              )}
               <label className="cursor-pointer bg-theme-card border border-theme-subtle hover:bg-theme-card-subtle text-theme-main px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm transition flex items-center gap-1.5">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                 Ler PDF

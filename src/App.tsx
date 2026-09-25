@@ -122,6 +122,14 @@ export const App: React.FC = () => {
     setActiveTab('scale');
   };
 
+  const handleDeleteRecipe = async (id: string) => {
+    await db.deleteRecipeTransaction(id);
+    if (selectedRecipe?.id === id) {
+      setSelectedRecipe(null);
+      setActiveTab('catalog');
+    }
+  };
+
   if (!isDbReady) {
     return (
       <div className="min-h-screen bg-theme-app flex items-center justify-center text-theme-muted text-xs font-semibold">
@@ -146,6 +154,7 @@ export const App: React.FC = () => {
             recipes={recipes}
             onSelectRecipe={handleSelectRecipeForScale}
             onResetToSeed={handleResetToSeed}
+            onDeleteRecipe={handleDeleteRecipe}
           />
         )}
 
@@ -185,6 +194,7 @@ export const App: React.FC = () => {
             recipe={selectedRecipe}
             onBackToRecipes={() => setActiveTab('catalog')}
             onOpenInBakers={handleOpenInBakers}
+            onDeleteRecipe={() => handleDeleteRecipe(selectedRecipe.id)}
           />
         )}
 
