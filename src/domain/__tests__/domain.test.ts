@@ -384,6 +384,8 @@ Massa de panqueca
 
     const oleo = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('óleo'));
     assert.ok(oleo, 'Óleo deve ser encontrado');
+    assert.equal(oleo.name, 'Óleo');
+    assert.equal(oleo.amount, 13.5);
 
     // Utensílios NÃO devem ter sido incluídos como ingredientes
     const liquidificador = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('liquidificador'));
@@ -393,6 +395,67 @@ Massa de panqueca
     assert.equal(res.recipe.steps.length, 5);
     assert.ok(res.recipe.steps[0].includes('liquidificador'));
     assert.ok(res.recipe.steps[4].includes('recheio'));
+  });
+
+  test('Deve parsear o texto integral colado pelo usuário do TudoGostoso com 100% de precisão física', () => {
+    const rawUserText = `TudoGostoso > Categorias > Receitas > Receitas massas > Massa de panqueca simples
+Massa de panqueca
+simples
+15min Muito fácil Custo baixo
+Por Yara
+Quem resiste a uma pilha fofinha de panquecas douradas no café da
+manhã? Com apenas cinco ingredientes básicos e em um piscar de
+olhos, você pode preparar a massa de panqueca simples perfeita,
+garantindo um café da manhã reforçado e delicioso em apenas 15
+minutos! A simplicidade dessa receita é cativante: um ovo, uma xícara de
+farinha de trigo, outra de leite, uma pitada de sal e uma colher de óleo é
+tudo o que você precisa para criar essas panquecas irresistíveis.
+Ingredientes (8 porções)
+1 ovo
+1 xícara de farinha de trigo
+1 xícara de leite
+1 pitada de sal
+1 colher (sopa) de óleo
+Utensílios
+Liquidificador
+Pincel de silicone
+Concha
+Frigideira funda
+Prato raso
+Ao clicar em comprar você será redirecionado para um site externo
+
+Modo de preparo
+Modo de preparo :
+15min
+1 Bata todos os ingredientes no liquidificador até obter uma
+consistência cremosa.
+2 Unte uma frigideira com óleo e despeje uma concha de massa.
+3 Faça movimentos circulares para que a massa se espalhe por toda
+a frigideira.
+4 Espere até a massa se soltar do fundo, vire e deixe fritar do outro
+lado.
+5 Acrescente o recheio de sua preferência, enrole e está pronta para
+servir.
+Veja também…
+Massa de panqueca
+Informações adicionais
+Outros tipos de massa de panqueca`;
+
+    const res = SanitizeAndParseRecipeUseCase.execute(rawUserText);
+    assert.equal(res.recipe.title, 'Massa de panqueca simples');
+    assert.equal(res.recipe.baseYield, 8);
+    assert.equal(res.recipe.ingredients.length, 5);
+    assert.deepEqual(
+      res.recipe.ingredients.map((i) => ({ name: i.name, amount: i.amount })),
+      [
+        { name: 'Ovo', amount: 50 },
+        { name: 'Farinha de trigo', amount: 120 },
+        { name: 'Leite', amount: 244.8 },
+        { name: 'Sal', amount: 1 },
+        { name: 'Óleo', amount: 13.5 }
+      ]
+    );
+    assert.equal(res.recipe.steps.length, 5);
   });
 });
 

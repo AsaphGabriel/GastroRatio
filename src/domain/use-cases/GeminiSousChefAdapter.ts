@@ -18,9 +18,9 @@ export interface SousChefParseResult {
  * - Fix #8: IDs gerados via crypto.randomUUID() (criptograficamente seguros) [CWE-330]
  */
 export class GeminiSousChefAdapter {
-  // Migração para Flash-Lite (Fase 5): Evita HTTP 503 na cota gratuita
+  // Migração para Gemini 3.5 Flash-Lite (modelo ativo e estável recomendado pelo Google em 2026)
   private static readonly API_ENDPOINT =
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
 
   // Fix #5: Timeout rígido de 20 segundos para chamadas externas (CWE-400 / Pilar 23)
   private static readonly FETCH_TIMEOUT_MS = 20_000;

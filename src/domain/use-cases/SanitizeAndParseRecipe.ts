@@ -12,6 +12,31 @@ export interface ParseRecipeResult {
   unparsedLines: string[];
 }
 
+// Normaliza medidas brasileiras com parênteses antes do parser (ex: "colher (sopa)" -> "colher de sopa")
+function normalizeBrazilianMeasureUnits(line: string): string {
+  return line
+    .replace(/\bcolher(?:es)?\s*\(\s*sopa\s*\)/gi, (m) =>
+      m.toLowerCase().startsWith('colheres') ? 'colheres de sopa' : 'colher de sopa'
+    )
+    .replace(/\bcolher(?:es)?\s*\(\s*chá\s*\)/gi, (m) =>
+      m.toLowerCase().startsWith('colheres') ? 'colheres de chá' : 'colher de chá'
+    )
+    .replace(/\bcolher(?:es)?\s*\(\s*sobremesa\s*\)/gi, (m) =>
+      m.toLowerCase().startsWith('colheres') ? 'colheres de sobremesa' : 'colher de sobremesa'
+    )
+    .replace(/\bcolher(?:es)?\s*\(\s*café\s*\)/gi, (m) =>
+      m.toLowerCase().startsWith('colheres') ? 'colheres de café' : 'colher de café'
+    )
+    .replace(/\bxícaras?\s*\(\s*chá\s*\)/gi, (m) =>
+      m.toLowerCase().startsWith('xícaras') ? 'xícaras' : 'xícara'
+    )
+    .replace(/\bxícaras?\s*\(\s*café\s*\)/gi, (m) =>
+      m.toLowerCase().startsWith('xícaras') ? 'xícaras de café' : 'xícara de café'
+    )
+    .replace(/\bcopos?\s*\(\s*americano\s*\)/gi, 'copo')
+    .replace(/\bcopos?\s*\(\s*requeijão\s*\)/gi, 'copo');
+}
+
 // Mapeamento de unidades brasileiras para o UnitType do GastroRatio
 function mapToUnitType(parsedUnit: string | null, parsedSymbol: string | null): UnitType {
   const u = (parsedUnit || parsedSymbol || '').toLowerCase().trim();
@@ -238,21 +263,29 @@ export class SanitizeAndParseRecipeUseCase {
 
     for (let i = 0; i < ingredientLines.length; i++) {
       const rawLine = ingredientLines[i].replace(/^[•\-*]\s*/, '').trim();
+      const normalizedLine = normalizeBrazilianMeasureUnits(rawLine);
 
       try {
-        const parsed = parse(rawLine, { language: { from: 'pt', to: 'pt' } });
+        const parsed = parse(normalizedLine, { language: { from: 'pt', to: 'pt' } });
 
         if (parsed && parsed.ingredient) {
           const rawAmount = parsed.quantity ? parseFloat(parsed.quantity) : 1;
           const unit = mapToUnitType(parsed.unit, parsed.symbol);
-          const { category, isStaple } = categorizeIngredient(parsed.ingredient);
+
+          // Remove qualificadores e parênteses residuais do nome (ex: "açúcar (chá)" -> "açúcar")
+          let cleanIngredientName = parsed.ingredient
+            .replace(/\s*\((?:chá|sopa|café|sobremesa|opcional|a gosto)\)/gi, '')
+            .replace(/^[•\-*]\s*/, '')
+            .trim();
+
+          const { category, isStaple } = categorizeIngredient(cleanIngredientName);
 
           // Converte para gramas ou mililitros
-          const conversion = ConvertUnitsUseCase.execute(parsed.ingredient, rawAmount, unit);
+          const conversion = ConvertUnitsUseCase.execute(cleanIngredientName, rawAmount, unit);
 
           ingredients.push({
             id: generateId('ing'),
-            name: parsed.ingredient.charAt(0).toUpperCase() + parsed.ingredient.slice(1),
+            name: cleanIngredientName.charAt(0).toUpperCase() + cleanIngredientName.slice(1),
             amount: conversion.grams.toNumber(),
             unit: 'g',
             isStaple,
