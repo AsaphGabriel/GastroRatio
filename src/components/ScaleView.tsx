@@ -177,7 +177,15 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
               <p className="text-[11px] text-theme-dim mt-1.5 font-medium">
                 Peso total: ~{Math.round(totalWeightGrams)}g
                 {weightPerPortionGrams !== null && (
-                  <span> · ~{weightPerPortionGrams}g por {recipe.yieldUnit.replace(/s$/, '')}</span>
+                  <span>
+                    {' · ~'}{weightPerPortionGrams}g por {
+                      recipe.yieldUnit === 'porções' ? 'porção' :
+                      recipe.yieldUnit === 'unidades' ? 'unidade' :
+                      recipe.yieldUnit === 'fatias' ? 'fatia' :
+                      recipe.yieldUnit === 'pedaços' ? 'pedaço' :
+                      recipe.yieldUnit.replace(/s$/, '')
+                    }
+                  </span>
                 )}
               </p>
             )}
