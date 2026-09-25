@@ -314,6 +314,86 @@ Asse a 220 graus.
     const agua = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('água'))!;
     assert.equal(agua.bakersPercentage, 65);
   });
+
+  test('Deve parsear PDF de impressão do TudoGostoso com 2 colunas, rendimento e ignorar utensílios', () => {
+    const tudoGostosoPdfTexto = `
+TudoGostoso > Categorias > Receitas > Receitas massas > Massa de panqueca simples
+Massa de panqueca
+simples
+Por Yara
+Quem resiste a uma pilha fofinha de panquecas douradas no café da
+manhã? Com apenas cinco ingredientes básicos e em um piscar de
+olhos, você pode preparar a massa de panqueca simples perfeita,
+garantindo um café da manhã reforçado e delicioso em apenas 15
+minutos! A simplicidade dessa receita é cativante: um ovo, uma xícara de
+farinha de trigo, outra de leite, uma pitada de sal e uma colher de óleo é
+tudo o que você precisa para criar essas panquecas irresistíveis.
+
+Ingredientes (8 porções)
+1 ovo 1 xícara de farinha de trigo
+1 xícara de leite 1 pitada de sal
+1 colher (sopa) de óleo
+
+Utensílios
+Ao clicar em comprar você será redirecionado para um site externo
+15min Muito fácil Custo baixo
+Liquidificador Pincel de silicone
+Concha Frigideira funda
+Prato raso 
+
+Modo de preparo
+Modo de preparo :
+15min
+Bata todos os ingredientes no liquidificador até obter uma
+consistência cremosa.
+1
+Unte uma frigideira com óleo e despeje uma concha de massa. 2
+Faça movimentos circulares para que a massa se espalhe por toda
+a frigideira.
+3
+Espere até a massa se soltar do fundo, vire e deixe fritar do outro
+lado.
+4
+Acrescente o recheio de sua preferência, enrole e está pronta para
+servir.
+5
+
+Veja também…
+Massa de panqueca
+`;
+
+    const res = SanitizeAndParseRecipeUseCase.execute(tudoGostosoPdfTexto);
+
+    assert.equal(res.recipe.title, 'Massa de panqueca simples');
+    assert.equal(res.recipe.baseYield, 8);
+    assert.equal(res.recipe.yieldUnit, 'porções');
+    assert.equal(res.recipe.ingredients.length, 5);
+
+    const ovo = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('ovo'));
+    assert.ok(ovo, 'Ovo deve ser encontrado');
+
+    const farinha = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('farinha'));
+    assert.ok(farinha, 'Farinha deve ser encontrada');
+    assert.equal(farinha.amount, 120);
+
+    const leite = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('leite'));
+    assert.ok(leite, 'Leite deve ser encontrado');
+
+    const sal = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('sal'));
+    assert.ok(sal, 'Sal deve ser encontrado');
+
+    const oleo = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('óleo'));
+    assert.ok(oleo, 'Óleo deve ser encontrado');
+
+    // Utensílios NÃO devem ter sido incluídos como ingredientes
+    const liquidificador = res.recipe.ingredients.find((i) => i.name.toLowerCase().includes('liquidificador'));
+    assert.ok(!liquidificador, 'Utensílios não devem virar ingredientes');
+
+    // Passos de preparo consolidados
+    assert.equal(res.recipe.steps.length, 5);
+    assert.ok(res.recipe.steps[0].includes('liquidificador'));
+    assert.ok(res.recipe.steps[4].includes('recheio'));
+  });
 });
 
 describe('ChemicalSubstitutions (Substituições Físico-Químicas)', () => {

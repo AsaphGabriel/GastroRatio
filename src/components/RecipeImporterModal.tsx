@@ -3,7 +3,7 @@ import { Recipe } from '../domain/schemas/recipe.schema.js';
 import { SanitizeAndParseRecipeUseCase } from '../domain/use-cases/SanitizeAndParseRecipe.js';
 import { FetchRecipeFromUrlUseCase } from '../domain/use-cases/FetchRecipeFromUrl.js';
 import { GeminiSousChefAdapter } from '../domain/use-cases/GeminiSousChefAdapter.js';
-import { X, Sparkles, Zap, AlertCircle, Save } from 'lucide-react';
+import { X, Sparkles, Zap, AlertCircle, Save, FileText } from 'lucide-react';
 
 interface RecipeImporterModalProps {
   isOpen: boolean;
@@ -17,6 +17,7 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
   onSaveRecipe
 }) => {
   const [rawText, setRawText] = useState('');
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [parsedRecipe, setParsedRecipe] = useState<Recipe | null>(null);
   const [confidence, setConfidence] = useState<number>(0);
   const [source, setSource] = useState<'local' | 'ai'>('local');
@@ -30,12 +31,13 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
     try {
       setIsLoadingLocal(true);
       setErrorMsg(null);
+      setPdfFile(file);
       const { ExtractTextFromPdfUseCase } = await import('../domain/use-cases/ExtractTextFromPdf.js');
       const text = await ExtractTextFromPdfUseCase.execute(file);
       setRawText(text.substring(0, 5000));
     } catch (err) {
       console.error(err);
-      setErrorMsg('Erro ao ler PDF. Ele pode ser uma imagem escaneada ou estar protegido.');
+      setErrorMsg('Erro ao ler PDF. Ele pode ser uma imagem escaneada sem texto ou estar protegido.');
     } finally {
       setIsLoadingLocal(false);
     }
@@ -69,7 +71,7 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
     setWarningMsg(null);
     const sanitizedText = rawText.trim().substring(0, 5000);
     if (!sanitizedText) {
-      setErrorMsg('Cole o texto ou a URL da receita antes de extrair.');
+      setErrorMsg('Cole o texto, URL ou carregue um PDF da receita antes de extrair.');
       return;
     }
 
@@ -96,9 +98,17 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
   const handleAiParse = async () => {
     setErrorMsg(null);
     setWarningMsg(null);
+
+    // Verificar de antemão se a chave existe antes de disparar loading
+    const savedKey = sessionStorage.getItem('gastroratio_gemini_api_key_v2');
+    if (!savedKey) {
+      setErrorMsg('Chave da API do Gemini não configurada. Configure na aba Configurações para usar a IA, ou use o botão "Extrair Instantâneo (Offline)".');
+      return;
+    }
+
     let sanitizedText = rawText.trim().substring(0, 5000);
-    if (!sanitizedText) {
-      setErrorMsg('Cole o texto ou a URL da receita antes de refinar com IA.');
+    if (!sanitizedText && !pdfFile) {
+      setErrorMsg('Cole o texto, URL ou carregue um PDF da receita antes de refinar com IA.');
       return;
     }
 
@@ -106,28 +116,23 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
 
     setIsLoadingAi(true);
     try {
-      if (isUrl) {
-        // Se for URL, primeiro extraímos o texto via proxy/JSON-LD, e depois passamos pra IA melhorar
+      let result;
+      if (pdfFile) {
+        // Envia o arquivo PDF nativamente para a API multimodal do Gemini
+        result = await GeminiSousChefAdapter.parseRecipeFromPdf(pdfFile);
+      } else if (isUrl) {
         sanitizedText = await FetchRecipeFromUrlUseCase.extractRawTextFromUrl(sanitizedText);
+        result = await GeminiSousChefAdapter.parseChaoticRecipe(sanitizedText);
+      } else {
+        result = await GeminiSousChefAdapter.parseChaoticRecipe(sanitizedText);
       }
       
-      const result = await GeminiSousChefAdapter.parseChaoticRecipe(sanitizedText);
       setParsedRecipe(result.recipe);
       setConfidence(1.0);
       setSource('ai');
     } catch (err: any) {
-      // Fallback Silencioso: IA falhou (ex: 503), usamos motor local sem travar o app
-      console.warn('API de IA falhou. Acionando fallback offline:', err.message);
-      try {
-        const localResult = SanitizeAndParseRecipeUseCase.execute(sanitizedText);
-        setParsedRecipe(localResult.recipe);
-        setConfidence(localResult.confidence);
-        setSource('local');
-        setWarningMsg('Servidor de IA em alta demanda. Sua receita foi extraída com sucesso pelo motor local offline!');
-      } catch (localErr: any) {
-        // Ambas falharam
-        setErrorMsg('Erro na IA e no motor local: Não foi possível extrair a receita.');
-      }
+      console.error('Falha na extração com IA:', err);
+      setErrorMsg(`Falha na IA: ${err.message || 'Erro de comunicação'}. Você ainda pode extrair offline usando o botão ao lado.`);
     } finally {
       setIsLoadingAi(false);
     }
@@ -190,6 +195,25 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
             <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center">
               <AlertCircle className="w-4 h-4 mr-2 shrink-0" />
               <span>{warningMsg}</span>
+            </div>
+          )}
+
+          {/* Indicador de PDF Ativo */}
+          {pdfFile && (
+            <div className="flex items-center justify-between p-2.5 bg-theme-brand-subtle/50 border border-theme-brand/30 rounded-xl text-xs text-theme-main">
+              <span className="flex items-center gap-1.5 font-medium truncate">
+                <FileText className="w-4 h-4 text-theme-brand shrink-0" />
+                Arquivo PDF: <strong className="truncate">{pdfFile.name}</strong> ({(pdfFile.size / 1024).toFixed(0)} KB)
+              </span>
+              <button
+                onClick={() => {
+                  setPdfFile(null);
+                  setRawText('');
+                }}
+                className="text-[11px] text-theme-muted hover:text-rose-500 font-bold ml-2 shrink-0 transition"
+              >
+                Remover PDF
+              </button>
             </div>
           )}
 

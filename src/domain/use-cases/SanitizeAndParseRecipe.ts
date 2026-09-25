@@ -94,29 +94,50 @@ export class SanitizeAndParseRecipeUseCase {
       throw new Error('[Parser] O texto da receita está vazio.');
     }
 
-    let title = 'Receita Importada';
+    let title = '';
+    let baseYield = 4;
+    let yieldUnit = 'porções';
     const ingredientLines: string[] = [];
     const stepLines: string[] = [];
     const unparsedLines: string[] = [];
 
     // Fases de leitura do texto
-    type Section = 'header' | 'ingredients' | 'steps';
+    type Section = 'header' | 'ingredients' | 'paused' | 'steps' | 'end';
     let currentSection: Section = 'header';
 
-    for (const line of lines) {
+    const multiPattern =
+      /(?<=[a-zA-Z\)])\s+(?=(?:\d+(?:[\d\/\.,\s]*(?:xícara|colher|pitada|copo|g|kg|ml|l|unidade|lata|dente|pacote|envelope|cs|cc)\b|\s*(?:ovo|ovos|gema|clara|pitada))))/i;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
       const lower = line.toLowerCase().trim();
 
-      // Detecção estrita de cabeçalhos de seção
+      // Detecção de cabeçalho de ingredientes (incluindo rendimento embutido, ex: "Ingredientes (8 porções)")
       const isIngHeader =
-        /^(ingredientes?|para a massa|para o recheio|ingredientes da cobertura|ingredientes do molho)[:\s]*$/i.test(lower) ||
+        /^ingredientes?(?:\s*\([^)]+\))?[:\s]*$/i.test(lower) ||
         (lower.startsWith('ingrediente') && lower.length < 35);
 
+      // Detecção de cabeçalho de passos
       const isStepHeader =
         /^(modo de preparo|como fazer|instruções|preparo|modo de fazer|etapas|método)[:\s]*$/i.test(lower) ||
         (lower.startsWith('modo de preparo') && lower.length < 35);
 
+      // Limites de parada
+      const isIngStopBoundary =
+        /^(utensílios|utensilios|equipamentos|material|tempo de preparo|para servir)[:\s]*$/i.test(lower);
+      const isStepStopBoundary =
+        /^(veja também|veja tambem|informações adicionais|outros tipos|denunciar|comentários|avaliações|tags|publicidade)[:\s]*/i.test(lower);
+
       if (isIngHeader) {
         currentSection = 'ingredients';
+        // Extrai rendimento se presente no cabeçalho: "Ingredientes (8 porções)"
+        const yieldMatch =
+          line.match(/\((\d+)\s*(porç[õo]es|unidades|fatias|pessoas)?\)/i) ||
+          line.match(/(?:rendimento|serve)[:\s]*(\d+)\s*(porç[õo]es|unidades|fatias|pessoas)?/i);
+        if (yieldMatch) {
+          baseYield = parseInt(yieldMatch[1], 10);
+          if (yieldMatch[2]) yieldUnit = yieldMatch[2].toLowerCase();
+        }
         continue;
       }
 
@@ -125,23 +146,83 @@ export class SanitizeAndParseRecipeUseCase {
         continue;
       }
 
+      if (currentSection === 'ingredients' && isIngStopBoundary) {
+        currentSection = 'paused';
+        continue;
+      }
+
+      if (currentSection === 'steps' && isStepStopBoundary) {
+        currentSection = 'end';
+        break;
+      }
+
       if (currentSection === 'header') {
-        if (!title || title === 'Receita Importada') {
+        // Trata breadcrumbs comuns de sites (ex: TudoGostoso > Categorias > Massas > Massa de panqueca simples)
+        if (line.includes('>') || line.includes('»')) {
+          const parts = line.split(/[>»]/).map((p) => p.trim());
+          const candidate = parts[parts.length - 1];
+          if (candidate.length > 3 && candidate.length < 80) {
+            title = candidate;
+          }
+        } else if (!title && !lower.startsWith('por ') && !lower.includes('min') && line.length < 60) {
           title = line.replace(/^[#*-\s]+/, '').trim();
+          // Se a próxima linha for curta e continuar o título (ex: "Massa de panqueca" \n "simples"), e não for cabeçalho
+          if (
+            i + 1 < lines.length &&
+            lines[i + 1].length < 25 &&
+            !lines[i + 1].toLowerCase().startsWith('por ') &&
+            !lines[i + 1].toLowerCase().includes('min') &&
+            !lines[i + 1].toLowerCase().startsWith('ingrediente') &&
+            !lines[i + 1].toLowerCase().startsWith('modo') &&
+            !lines[i + 1].includes('>')
+          ) {
+            title += ' ' + lines[i + 1].trim();
+            i++;
+          }
         } else {
-          if (/^\d|xícara|colher|pitada|copo|[•\-*]/i.test(line)) {
+          // Entrar em ingredientes sem cabeçalho explícito SOMENTE se for um item culinário legítimo
+          const isStrictIngredientLine =
+            (/^[•\-*]\s*\d+/i.test(line) ||
+              /^\d+[\d\/\.,\s]*(?:xícara|colher|copo|g|kg|ml|l|unidade|lata|pitada)\b/i.test(line)) &&
+            !/(?:minuto|minutos|ano|anos|hora|horas|dia|dias)\b/i.test(line);
+
+          if (isStrictIngredientLine) {
             currentSection = 'ingredients';
             ingredientLines.push(line);
           }
         }
       } else if (currentSection === 'ingredients') {
-        ingredientLines.push(line);
+        // Quebra linhas que contenham múltiplos ingredientes colados lado a lado (ex: 2 colunas do TudoGostoso)
+        const splitItems = line.split(multiPattern).map((p) => p.trim()).filter((p) => p.length > 0);
+        for (const item of splitItems) {
+          // Filtra linhas vazias ou de navegação residual
+          if (
+            /^\d|xícara|colher|pitada|copo|[•\-*]/i.test(item) ||
+            /^(sal|açúcar|óleo|azeite|farinha|leite|ovo|ovos|manteiga|fermento)\b/i.test(item)
+          ) {
+            ingredientLines.push(item);
+          }
+        }
       } else if (currentSection === 'steps') {
-        stepLines.push(line);
+        // Ignora números soltos (badges como "1", "2") e metadados de tempo na seção de preparo
+        if (/^\d+$/.test(line) || /^modo de preparo\s*:\s*\d+min/i.test(line) || /^\d+min$/i.test(line)) {
+          continue;
+        }
+
+        // Limpa badges numéricos no início ou no fim da linha (ex: "Unte a frigideira... 2")
+        const cleaned = line.replace(/^\d+[\.\)\-]?\s*/, '').replace(/\s+\d+$/, '').trim();
+        if (cleaned.length > 0) {
+          // Se a linha anterior não terminou com pontuação, une como continuação de frase
+          if (stepLines.length > 0 && !/[.!?:]$/.test(stepLines[stepLines.length - 1])) {
+            stepLines[stepLines.length - 1] += ' ' + cleaned;
+          } else {
+            stepLines.push(cleaned);
+          }
+        }
       }
     }
 
-    // Se não encontrou divisão explícita, faz divisão heurística
+    // Fallback heurístico caso não haja cabeçalhos no texto
     if (ingredientLines.length === 0 && stepLines.length === 0) {
       for (const line of lines) {
         if (/^\d|xícara|colher|pitada|copo|[•\-*]/i.test(line)) {
@@ -170,7 +251,6 @@ export class SanitizeAndParseRecipeUseCase {
           const conversion = ConvertUnitsUseCase.execute(parsed.ingredient, rawAmount, unit);
 
           ingredients.push({
-            // generateId: cascata resiliente (UUID → getRandomValues → Date.now) [CWE-330]
             id: generateId('ing'),
             name: parsed.ingredient.charAt(0).toUpperCase() + parsed.ingredient.slice(1),
             amount: conversion.grams.toNumber(),
@@ -221,12 +301,11 @@ export class SanitizeAndParseRecipeUseCase {
     }
 
     const recipe: Recipe = {
-      // generateId: cascata resiliente para ID da receita importada [CWE-330]
       id: generateId('rec-imported'),
       title: title || 'Receita Importada da Internet',
       description: `Importada via parser local (${ingredients.length} ingredientes identificados em gramas).`,
-      baseYield: 4,
-      yieldUnit: 'porções',
+      baseYield,
+      yieldUnit,
       prepTimeMinutes: 15,
       cookTimeMinutes: 25,
       isBakingRecipe,
