@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Recipe } from '../domain/schemas/recipe.schema.js';
 import { SanitizeAndParseRecipeUseCase } from '../domain/use-cases/SanitizeAndParseRecipe.js';
 import { FetchRecipeFromUrlUseCase } from '../domain/use-cases/FetchRecipeFromUrl.js';
@@ -9,14 +9,22 @@ interface RecipeImporterModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSaveRecipe: (recipe: Recipe) => Promise<void>;
+  initialRawText?: string;
 }
 
 export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
   isOpen,
   onClose,
-  onSaveRecipe
+  onSaveRecipe,
+  initialRawText = ''
 }) => {
-  const [rawText, setRawText] = useState('');
+  const [rawText, setRawText] = useState(initialRawText);
+
+  useEffect(() => {
+    if (initialRawText) {
+      setRawText(initialRawText);
+    }
+  }, [initialRawText]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [parsedRecipe, setParsedRecipe] = useState<Recipe | null>(null);
   const [confidence, setConfidence] = useState<number>(0);

@@ -18,8 +18,22 @@ export const App: React.FC = () => {
   const [assumeBasicStaples, setAssumeBasicStaples] = useState<boolean>(true);
   const [isDbReady, setIsDbReady] = useState(false);
   const [isImporterOpen, setIsImporterOpen] = useState(false);
-  // BakersView is now contextual — only accessible from within ScaleView
   const [isBakersOpen, setIsBakersOpen] = useState(false);
+  const [initialImportText, setInitialImportText] = useState('');
+
+  useEffect(() => {
+    if (window.location.hash.startsWith('#import=')) {
+      try {
+        const rawParam = window.location.hash.replace('#import=', '');
+        const decoded = decodeURIComponent(rawParam);
+        setInitialImportText(decoded);
+        setIsImporterOpen(true);
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      } catch (e) {
+        console.error('Failed to parse import hash');
+      }
+    }
+  }, []);
 
   // Sistema de Tema Duplo: Claro (Bege Culinário / Terracota) vs Escuro (Midnight Slate)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -214,6 +228,7 @@ export const App: React.FC = () => {
         isOpen={isImporterOpen}
         onClose={() => setIsImporterOpen(false)}
         onSaveRecipe={handleSaveImportedRecipe}
+        initialRawText={initialImportText}
       />
       <SWUpdater />
     </div>
