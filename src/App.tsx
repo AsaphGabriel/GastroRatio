@@ -9,6 +9,7 @@ import { BakersView } from './components/BakersView.js';
 import { RecipesListView } from './components/RecipesListView.js';
 import { SettingsView } from './components/SettingsView.js';
 import { RecipeImporterModal } from './components/RecipeImporterModal.js';
+import { SWUpdater } from './components/SWUpdater.js';
 import { generateId } from './utils/id.js';
 
 export const App: React.FC = () => {
@@ -204,6 +205,7 @@ export const App: React.FC = () => {
         onClose={() => setIsImporterOpen(false)}
         onSaveRecipe={handleSaveImportedRecipe}
       />
+      <SWUpdater />
     </div>
   );
 };
