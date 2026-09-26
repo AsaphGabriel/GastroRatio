@@ -110,7 +110,8 @@ function categorizeIngredient(name: string): { category: IngredientCategory; isS
  */
 export class SanitizeAndParseRecipeUseCase {
   public static execute(rawText: string): ParseRecipeResult {
-    const lines = rawText
+    const cleanRawText = rawText.replace(/\*\*/g, '').replace(/__/g, '');
+    const lines = cleanRawText
       .split('\n')
       .map((l) => l.trim())
       .filter((l) => l.length > 0);
@@ -206,10 +207,10 @@ export class SanitizeAndParseRecipeUseCase {
           }
         } else {
           const isStrictIngredientLine =
-            (/^[•\-*]\s*\d+/i.test(line) ||
-              /^\d+[\d\/\.,\s]*(?:xícara|colher|copo|g|kg|ml|l|unidade|lata|caixa|pitada)\b/i.test(line) ||
-              /^.+?:\s*\d+[\d\/\.,\s]*(?:xícara|colher|copo|g|kg|ml|l|unidade|lata|caixa|pitada)?\b/i.test(line)) &&
-            !/(?:minuto|minutos|ano|anos|hora|horas|dia|dias)\b/i.test(line);
+          (/^\s*[•\-*]\s*\d+/i.test(line) ||
+            /^\s*\d+[\d\/\.,\s]*(?:xícara|colher|copo|g|kg|ml|l|unidade|lata|caixa|pitada)\b/i.test(line) ||
+            /^\s*.+?:\s*\d+[\d\/\.,\s]*(?:xícara|colher|copo|g|kg|ml|l|unidade|lata|caixa|pitada)?\b/i.test(line)) &&
+          !/(?:minuto|minutos|ano|anos|hora|horas|dia|dias)\b/i.test(line);
 
           if (isStrictIngredientLine) {
             currentSection = 'ingredients';

@@ -224,12 +224,14 @@ export const App: React.FC = () => {
         {activeTab === 'settings' && <SettingsView />}
       </main>
 
-      <RecipeImporterModal
-        isOpen={isImporterOpen}
-        onClose={() => setIsImporterOpen(false)}
-        onSaveRecipe={handleSaveImportedRecipe}
-        initialRawText={initialImportText}
-      />
+      {isImporterOpen && (
+        <RecipeImporterModal
+          isOpen={isImporterOpen}
+          onClose={() => setIsImporterOpen(false)}
+          onSaveRecipe={handleSaveImportedRecipe}
+          initialRawText={initialImportText}
+        />
+      )}
       <SWUpdater />
     </div>
   );
