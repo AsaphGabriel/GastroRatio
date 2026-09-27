@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Recipe, PantryItem } from '../domain/schemas/recipe.schema.js';
 import { FindRecipesByPantryUseCase } from '../domain/use-cases/FindRecipesByPantry.js';
+import { db } from '../data/database.js';
 import {
   Check,
   Sparkles,
@@ -280,7 +281,6 @@ export const PantryView: React.FC<PantryViewProps> = ({
                           if (existing) {
                             onTogglePantryItem(existing);
                           } else {
-                            const { db } = await import('../data/database.js');
                             await db.addOrUpdatePantryItem(missing.name, missing.category);
                           }
                         }}
