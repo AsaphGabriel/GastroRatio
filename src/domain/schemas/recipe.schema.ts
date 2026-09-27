@@ -77,6 +77,7 @@ export const CustomSubstitutionSchema = z.object({
   physicalFunction: z.string().default(''),     // Função físico-química (ex: "aerador", "emulsificante")
   explanation: z.string().default(''),          // Explicação da substituição
   waterAdjustmentAlert: z.string().optional(),  // Alerta de umidade livre (RN-03)
+  liquidDeltaRatio: z.number().default(0),      // Fator de ajuste hídrico (ex: -0.2 p/ mel, abate líquidos)
   source: z.enum(['user', 'ai']).default('user'), // Origem da substituição
   createdAt: z.string().default(() => new Date().toISOString())
 });

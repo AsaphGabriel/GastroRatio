@@ -302,7 +302,8 @@ Retorne SOMENTE um array JSON com objetos no seguinte formato EXATO:
     "ratio": "1:1",
     "physicalFunction": "Estrutura e liga",
     "explanation": "A farinha de aveia substitui 1:1 com textura levemente mais densa.",
-    "waterAdjustmentAlert": null
+    "waterAdjustmentAlert": null,
+    "liquidDeltaRatio": 0
   }
 ]
 Regras:
@@ -310,7 +311,8 @@ Regras:
 2. Se não houver substituto razoável ou o ingrediente for básico (ex: Água, Sal), OMITA-O. NUNCA sugira substitutos para Água (como caldo de galinha) a menos que agregue um valor químico imenso.
 3. Baseie-se em química real: densidades, funções Maillard, glúten, emulsificação. Pode sugerir substitutos universais (como mel para açúcar, chia para ovos) se fizerem sentido para a despensa do usuário.
 4. "multiplier" é o fator em peso/volume pelo qual multiplicar a quantidade original.
-5. "waterAdjustmentAlert" só preencha se houver impacto real na umidade da receita.`;
+5. "liquidDeltaRatio": FATOR NUMÉRICO (- reduz, + exige). Se o substituto adicionar líquido (ex: mel, shoyu, limão), preencha com valor negativo (ex: -0.20 para abater 20% do peso em água). Se absorver líquido extra (ex: cacau em pó, linhaça moída), preencha com positivo (ex: +0.35). Caso neutro, retorne 0.
+6. "waterAdjustmentAlert" só preencha se houver impacto real na umidade da receita.`;
 
     let key = apiKey;
     if (!key) {
@@ -359,6 +361,7 @@ Regras:
           physicalFunction: s.physicalFunction || '',
           explanation: s.explanation || '',
           waterAdjustmentAlert: s.waterAdjustmentAlert || undefined,
+          liquidDeltaRatio: typeof s.liquidDeltaRatio === 'number' ? s.liquidDeltaRatio : 0,
           source: 'ai'
         }));
     } catch (err: any) {

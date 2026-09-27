@@ -6,6 +6,7 @@ export interface ChemicalSubstitution {
   readonly multiplier?: number;
   readonly overrideName?: string; // emulsificante, aerador, espessante, umectante
   readonly waterAdjustmentAlert?: string; // alerta de água livre (RN-03)
+  readonly liquidDeltaRatio?: number; // Ex: -0.18 reduz 18% de água da receita pelo peso do substituto
   readonly explanation: string;
 }
 
@@ -21,17 +22,20 @@ export const CANONICAL_CHEMICAL_SUBSTITUTIONS: readonly ChemicalSubstitution[] =
     overrideName: 'Mel de Abelha',
     ratio: 'Use 0.75x do peso do açúcar',
     physicalFunction: 'Adoçante e retentor de umidade (higroscópico)',
-    waterAdjustmentAlert: 'Atenção: O mel contém cerca de 17% a 18% de água livre. Reduza aproximadamente 2 colheres de sopa de líquido da receita para cada xícara de mel.',
+    waterAdjustmentAlert: 'O mel contém ~18% de água livre. O sistema compensará reduzindo os líquidos da receita.',
+    liquidDeltaRatio: -0.18,
     explanation: 'O mel é mais doce e retém mais água que a sacarose pura, acelerando também o escurecimento pela reação de Maillard.'
   },
   {
     original: 'fermento químico',
-    substitute: 'bicarbonato de sódio + suco de limão ou vinagre',
-    multiplier: 1.0,
-    overrideName: 'Bicarbonato + Limão/Vinagre',
-    ratio: '1 colher de chá de bicarbonato + 1 colher de chá de limão/vinagre',
-    physicalFunction: 'Agente de aeração química (geração de CO2)',
-    explanation: 'O fermento em pó comercial é bicarbonato com um ácido seco (cremor tártaro). Ao juntar bicarbonato com ácido líquido (limão/vinagre), a reação de efervescência ocorre na hora; leve ao forno imediatamente.'
+    substitute: 'bicarbonato de sódio + ácido (limão/vinagre)',
+    multiplier: 0.30,
+    overrideName: 'Bicarbonato de Sódio',
+    ratio: 'Use 0.30x do peso do fermento químico em bicarbonato + dobro do peso de ácido.',
+    physicalFunction: 'Agente de aeração química (geração de CO2 rápida)',
+    liquidDeltaRatio: -2.0, // O ácido que acompanha tem 2x o peso do bicarbonato e entra como líquido (ex: 3g bicarbonato precisa de 6g de limão)
+    waterAdjustmentAlert: 'O ácido líquido extra abaterá parte do leite/água originais.',
+    explanation: 'Fermento em pó comercial é apenas ~30% bicarbonato (o resto é amido e ácido seco). Ao usar bicarbonato puro, use 1/3 da quantidade e junte um ácido líquido. Leve ao forno imediatamente pois a reação é instantânea.'
   },
   {
     original: 'manteiga',
