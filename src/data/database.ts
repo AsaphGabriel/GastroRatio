@@ -108,20 +108,22 @@ export class GastroRatioDatabase extends Dexie {
       await this.recipes.put(recipe);
       
       const existingPantry = await this.pantry.toArray();
-      const existingNames = new Set(existingPantry.map(i => i.name.toLowerCase().trim()));
+      const normalizeName = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+      const existingNames = new Set(existingPantry.map(i => normalizeName(i.name)));
       
       const newPantryItems: PantryItem[] = [];
       for (const ingredient of recipe.ingredients) {
         const name = ingredient.name.trim();
-        const normalized = name.toLowerCase();
+        const normalized = normalizeName(name);
         
         if (!existingNames.has(normalized)) {
           existingNames.add(normalized);
+          const isBasicStaple = ingredient.isStaple || ingredient.category === 'staple_seasoning';
           newPantryItems.push({
             id: `p-import-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             name: name.charAt(0).toUpperCase() + name.slice(1),
             category: ingredient.category || 'vegetable',
-            inStock: false
+            inStock: isBasicStaple // Ingredientes básicos entram na despensa já marcados
           });
         }
       }

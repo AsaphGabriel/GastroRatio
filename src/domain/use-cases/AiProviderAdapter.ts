@@ -46,16 +46,18 @@ Você DEVE retornar um objeto JSON exatamente com a seguinte estrutura:
   ],
   "steps": [
     "Bata todos os ingredientes no liquidificador até obter uma consistência cremosa."
-  ]
+  ],
+  "tags": ["sobremesa", "fácil", "liquidificador"]
 }
 
 Regras Inegociáveis:
-1. As chaves do JSON DEVEM ser em inglês: "title", "description", "baseYield", "yieldUnit", "prepTimeMinutes", "cookTimeMinutes", "isBakingRecipe", "ingredients", "steps".
+1. As chaves do JSON DEVEM ser em inglês: "title", "description", "baseYield", "yieldUnit", "prepTimeMinutes", "cookTimeMinutes", "isBakingRecipe", "ingredients", "steps", "tags".
 2. Converta todas as medidas culinárias para gramas ('g') ou mililitros ('ml') sempre que possível (ex: 1 xícara de farinha = 120g, 1 xícara de leite = 240ml, 1 colher de sopa de óleo = 15g, 1 ovo = 50g ou 1 unit, 1 pitada de sal = 1g).
 3. Identifique se o ingrediente é da despensa básica (sal, óleo, azeite, alho, cebola, vinagre, açúcar) marcando isStaple: true.
 4. Categorias válidas para "category": 'flour_grain', 'liquid', 'fat_oil', 'sugar_sweetener', 'leavening', 'protein', 'vegetable', 'dairy', 'staple_seasoning'.
 5. Extraia o rendimento real da receita (ex: "8 porções" -> baseYield: 8, yieldUnit: "porções").
-6. Divida o modo de preparo em etapas claras e sucintas no array "steps". Ignore propagandas, utensílios de cozinha ou seções como "Veja também" e "Informações adicionais".`;
+6. Divida o modo de preparo em etapas claras e sucintas no array "steps". Ignore propagandas, utensílios de cozinha ou seções como "Veja também" e "Informações adicionais".
+7. Preencha o array "tags" com até 3 ou 4 palavras-chave classificatórias curtas (ex: jantar, fit, panificação, lanche, vegana).`;
 
   /**
    * Extração de receita diretamente do arquivo PDF usando a capacidade multimodal nativa do Gemini.
