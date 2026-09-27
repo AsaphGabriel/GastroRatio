@@ -51,7 +51,9 @@ export const PantryView: React.FC<PantryViewProps> = ({
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newItemName.trim()) return;
-    onAddPantryItem(newItemName.trim(), 'vegetable');
+    // Se a aba estiver em 'all', joga como vegetable. Senão, respeita a aba atual
+    const category = selectedCategoryFilter === 'all' ? 'vegetable' : selectedCategoryFilter;
+    onAddPantryItem(newItemName.trim(), category);
     setNewItemName('');
   };
 

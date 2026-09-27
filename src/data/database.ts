@@ -180,6 +180,20 @@ export class GastroRatioDatabase extends Dexie {
       }
     });
   }
+
+  /**
+   * Altera o estado inStock para os itens da categoria staple_seasoning, permitindo sincronizar a UI da despensa com o Toggle "Assumir básicos".
+   */
+  async setBasicStaplesStock(inStockStatus: boolean): Promise<void> {
+    await this.transaction('rw', this.pantry, async () => {
+      const all = await this.pantry.toArray();
+      for (const item of all) {
+        if (item.category === 'staple_seasoning' && item.inStock !== inStockStatus) {
+          await this.pantry.update(item.id, { inStock: inStockStatus });
+        }
+      }
+    });
+  }
 }
 
 export const db = new GastroRatioDatabase();

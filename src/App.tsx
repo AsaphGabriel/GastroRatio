@@ -10,7 +10,6 @@ import { RecipesListView } from './components/RecipesListView.js';
 import { SettingsView } from './components/SettingsView.js';
 import { RecipeImporterModal } from './components/RecipeImporterModal.js';
 import { SWUpdater } from './components/SWUpdater.js';
-import { generateId } from './utils/id.js';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('catalog');
@@ -84,15 +83,7 @@ export const App: React.FC = () => {
   };
 
   const handleAddPantryItem = async (name: string, category: any) => {
-    // generateId usa cascata de fallback (UUID → getRandomValues → Date.now) para funcionar
-    // tanto em HTTPS quanto em HTTP de rede local (http://192.168.x.x) [CWE-330 / src/utils/id.ts]
-    const id = generateId('p');
-    await db.pantry.put({
-      id,
-      name,
-      category,
-      inStock: true
-    });
+    await db.addOrUpdatePantryItem(name, category);
   };
 
   const handleClearPantry = async () => {
@@ -106,6 +97,8 @@ export const App: React.FC = () => {
   const handleToggleAssumeStaples = async (val: boolean) => {
     setAssumeBasicStaples(val);
     await db.settings.put({ key: 'assume_basic_staples', value: val });
+    // Se ligar o toggle, auto-marca os temperos na grade da despensa; se desligar, desmarca
+    await db.setBasicStaplesStock(val);
   };
 
   const handleSelectRecipeForScale = (recipe: Recipe) => {

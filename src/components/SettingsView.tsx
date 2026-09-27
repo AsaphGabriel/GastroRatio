@@ -290,6 +290,30 @@ export const SettingsView: React.FC = () => {
           </p>
         </div>
       </section>
+
+      {/* Zona de Perigo - Reset */}
+      <section className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-8">
+        <div className="text-xs space-y-1">
+          <h3 className="font-bold text-rose-700 dark:text-rose-400">Restaurar Padrões de Fábrica</h3>
+          <p className="text-rose-600/80 dark:text-rose-400/80 max-w-md">
+            Apaga TODAS as suas receitas customizadas, despensa e chaves de IA, e recarrega o catálogo canônico. Essa ação não pode ser desfeita.
+          </p>
+        </div>
+        <button
+          onClick={async () => {
+            if (window.confirm('Tem certeza? Você perderá todas as receitas importadas e seu estoque será apagado.')) {
+              await db.resetToSeed();
+              sessionStorage.clear();
+              localStorage.clear();
+              alert('Banco de dados restaurado. O app será recarregado.');
+              window.location.reload();
+            }
+          }}
+          className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm touch-target shrink-0"
+        >
+          Resetar App
+        </button>
+      </section>
     </div>
   );
 };
