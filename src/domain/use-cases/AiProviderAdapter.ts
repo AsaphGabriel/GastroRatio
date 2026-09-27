@@ -1,4 +1,4 @@
-import { Recipe, RecipeSchema, UnitType } from '../schemas/recipe.schema.js';
+import { Recipe, RecipeSchema, UnitType, CustomSubstitution, CustomSubstitutionSchema } from '../schemas/recipe.schema.js';
 import { generateId } from '../../utils/id.js';
 
 export interface SousChefParseResult {
@@ -283,5 +283,89 @@ Regras Inegociáveis:
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  }
+
+  /**
+   * Analisa a lista de ingredientes da despensa e retorna substituições físico-químicas via Gemini.
+   * Retorna array de CustomSubstitution prontas para persistência.
+   */
+  public static async analyzeSubstitutions(ingredientList: string, apiKey?: string): Promise<CustomSubstitution[]> {
+    const SUBSTITUTION_SYSTEM_PROMPT = `Você é um químico culinário especialista do GastroRatio.
+Você receberá uma lista de ingredientes de uma despensa doméstica.
+Para CADA ingrediente, proponha até 2 substitutos culinários nas proporções físico-químicas corretas.
+Retorne SOMENTE um array JSON com objetos no seguinte formato EXATO:
+[
+  {
+    "originalIngredient": "Farinha de trigo",
+    "substituteIngredient": "Farinha de aveia",
+    "multiplier": 1.0,
+    "ratio": "1:1",
+    "physicalFunction": "Estrutura e liga",
+    "explanation": "A farinha de aveia substitui 1:1 com textura levemente mais densa.",
+    "waterAdjustmentAlert": null
+  }
+]
+Regras:
+1. Retorne APENAS o array JSON. Nenhum texto antes ou depois.
+2. Se não houver substituto razoável para um ingrediente, omita-o.
+3. Baseie-se em química real: densidades, funções Maillard, glúten, emulsificação.
+4. "multiplier" é o fator em peso/volume pelo qual multiplicar a quantidade original.
+5. "waterAdjustmentAlert" só preencha se houver impacto real na umidade da receita.`;
+
+    let key = apiKey;
+    if (!key) {
+      try {
+        const saved = sessionStorage.getItem('gastroratio_gemini_api_key_v2');
+        if (saved) key = atob(saved).split('').reverse().join('');
+      } catch { key = ''; }
+    }
+    if (!key) throw new Error('Chave da API não configurada.');
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${key}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: SUBSTITUTION_SYSTEM_PROMPT }] },
+            contents: [{ role: 'user', parts: [{ text: ingredientList }] }],
+            generationConfig: { temperature: 0.2, maxOutputTokens: 4096 }
+          })
+        }
+      );
+
+      if (!response.ok) throw new Error(`API error ${response.status}`);
+
+      const data = await response.json();
+      let rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+      if (rawJson.startsWith('```')) rawJson = rawJson.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+
+      const parsed: any[] = JSON.parse(rawJson);
+      if (!Array.isArray(parsed)) throw new Error('Resposta da IA não é um array válido.');
+
+      return parsed
+        .filter(s => s.originalIngredient && s.substituteIngredient)
+        .map(s => CustomSubstitutionSchema.parse({
+          id: `sub-ai-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          originalIngredient: String(s.originalIngredient).trim(),
+          substituteIngredient: String(s.substituteIngredient).trim(),
+          multiplier: typeof s.multiplier === 'number' ? s.multiplier : 1,
+          ratio: s.ratio || '1:1',
+          physicalFunction: s.physicalFunction || '',
+          explanation: s.explanation || '',
+          waterAdjustmentAlert: s.waterAdjustmentAlert || undefined,
+          source: 'ai'
+        }));
+    } catch (err: any) {
+      if (err.name === 'AbortError') throw new Error('Tempo limite de 30s excedido.');
+      throw err;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 }

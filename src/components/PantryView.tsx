@@ -3,7 +3,6 @@ import { Recipe, PantryItem } from '../domain/schemas/recipe.schema.js';
 import { FindRecipesByPantryUseCase } from '../domain/use-cases/FindRecipesByPantry.js';
 import {
   Check,
-  Plus,
   Sparkles,
   AlertCircle,
   Clock,
@@ -16,7 +15,6 @@ interface PantryViewProps {
   recipes: Recipe[];
   pantryItems: PantryItem[];
   onTogglePantryItem: (item: PantryItem) => void;
-  onAddPantryItem: (name: string, category: any) => void;
   assumeBasicStaples: boolean;
   onToggleAssumeStaples: (val: boolean) => void;
   onSelectRecipeForScale: (recipe: Recipe) => void;
@@ -28,14 +26,12 @@ export const PantryView: React.FC<PantryViewProps> = ({
   recipes,
   pantryItems,
   onTogglePantryItem,
-  onAddPantryItem,
   assumeBasicStaples,
   onToggleAssumeStaples,
   onSelectRecipeForScale,
   onClearPantry,
   onSelectAllPantry
 }) => {
-  const [newItemName, setNewItemName] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
 
   // Ingredientes atualmente marcados como disponíveis na bancada
@@ -47,15 +43,6 @@ export const PantryView: React.FC<PantryViewProps> = ({
   const searchResults = useMemo(() => {
     return FindRecipesByPantryUseCase.execute(recipes, activeAvailableNames, assumeBasicStaples);
   }, [recipes, activeAvailableNames, assumeBasicStaples]);
-
-  const handleAddSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newItemName.trim()) return;
-    // Se a aba estiver em 'all', joga como vegetable. Senão, respeita a aba atual
-    const category = selectedCategoryFilter === 'all' ? 'vegetable' : selectedCategoryFilter;
-    onAddPantryItem(newItemName.trim(), category);
-    setNewItemName('');
-  };
 
   const categories = [
     { id: 'all', label: 'Todos' },
@@ -169,24 +156,6 @@ export const PantryView: React.FC<PantryViewProps> = ({
             })}
           </div>
         </div>
-
-        {/* Input Rápido para Insumos Extras */}
-        <form onSubmit={handleAddSubmit} className="flex gap-2 pt-1">
-          <input
-            type="text"
-            value={newItemName}
-            onChange={(e) => setNewItemName(e.target.value)}
-            placeholder="+ Adicionar ingrediente (ex: Espinafre, Bacon)..."
-            className="flex-1 bg-theme-card-subtle border border-theme-subtle rounded-xl px-3.5 py-2.5 text-xs text-theme-main placeholder:text-theme-dim focus:outline-none focus:border-theme-brand transition"
-          />
-          <button
-            type="submit"
-            className="bg-theme-card border border-theme-strong hover:bg-theme-card-hover text-theme-main px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center transition shadow-sm touch-target"
-          >
-            <Plus className="w-4 h-4 mr-1 shrink-0" />
-            Adicionar
-          </button>
-        </form>
 
         {/* Toggle de Ingredientes Básicos — rodapé discreto */}
         <div className="pt-2 border-t border-theme-subtle flex items-center justify-between gap-3">
@@ -306,18 +275,18 @@ export const PantryView: React.FC<PantryViewProps> = ({
 
                     <div className="flex items-center justify-between pt-2 border-t border-theme-subtle">
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           const existing = pantryItems.find((p) => p.name.toLowerCase() === missing.name.toLowerCase());
                           if (existing) {
                             onTogglePantryItem(existing);
                           } else {
-                            onAddPantryItem(missing.name, missing.category);
+                            const { db } = await import('../data/database.js');
+                            await db.addOrUpdatePantryItem(missing.name, missing.category);
                           }
                         }}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition touch-target"
                       >
-                        <Plus className="w-3 h-3" />
-                        Tenho {missing.name}!
+                        + Tenho {missing.name}!
                       </button>
 
                       <button

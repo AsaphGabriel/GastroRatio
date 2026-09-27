@@ -63,3 +63,22 @@ export const PantryItemSchema = z.object({
 });
 
 export type PantryItem = z.infer<typeof PantryItemSchema>;
+
+/**
+ * Substituição culinária personalizada, criada pelo usuário ou gerada pela IA.
+ * Armazenada na tabela custom_substitutions do IndexedDB.
+ */
+export const CustomSubstitutionSchema = z.object({
+  id: z.string().min(1),
+  originalIngredient: z.string().min(1),       // Nome do ingrediente original (normalizado)
+  substituteIngredient: z.string().min(1),      // Nome do substituto
+  multiplier: z.number().positive().default(1), // Fator de conversão (ex: 0.75 = 75% da quantidade)
+  ratio: z.string().default('1:1'),             // Descrição textual da proporção
+  physicalFunction: z.string().default(''),     // Função físico-química (ex: "aerador", "emulsificante")
+  explanation: z.string().default(''),          // Explicação da substituição
+  waterAdjustmentAlert: z.string().optional(),  // Alerta de umidade livre (RN-03)
+  source: z.enum(['user', 'ai']).default('user'), // Origem da substituição
+  createdAt: z.string().default(() => new Date().toISOString())
+});
+
+export type CustomSubstitution = z.infer<typeof CustomSubstitutionSchema>;

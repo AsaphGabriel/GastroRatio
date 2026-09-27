@@ -82,9 +82,6 @@ export const App: React.FC = () => {
     });
   };
 
-  const handleAddPantryItem = async (name: string, category: any) => {
-    await db.addOrUpdatePantryItem(name, category);
-  };
 
   const handleClearPantry = async () => {
     await db.clearAllPantryStock();
@@ -170,7 +167,6 @@ export const App: React.FC = () => {
             recipes={recipes}
             pantryItems={pantryItems}
             onTogglePantryItem={handleTogglePantryItem}
-            onAddPantryItem={handleAddPantryItem}
             assumeBasicStaples={assumeBasicStaples}
             onToggleAssumeStaples={handleToggleAssumeStaples}
             onSelectRecipeForScale={handleSelectRecipeForScale}

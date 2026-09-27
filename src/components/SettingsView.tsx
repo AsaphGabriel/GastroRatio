@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../data/database.js';
 import { RecipeSchema, PantryItemSchema } from '../domain/schemas/recipe.schema.js';
 import { Key, Download, Upload, ShieldCheck, Database, Check } from 'lucide-react';
+import { PantryManagerView } from './PantryManagerView.js';
 
 export const SettingsView: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
@@ -278,6 +279,11 @@ export const SettingsView: React.FC = () => {
             <input type="file" accept=".json" onChange={handleImportBackup} className="sr-only" />
           </label>
         </div>
+      </section>
+
+      {/* Laboratório do Chef — Gestor de Ingredientes */}
+      <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-4 card-shadow">
+        <PantryManagerView />
       </section>
 
       {/* Conformidade e LGPD */}
