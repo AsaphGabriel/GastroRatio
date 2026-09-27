@@ -307,11 +307,10 @@ Retorne SOMENTE um array JSON com objetos no seguinte formato EXATO:
 ]
 Regras:
 1. Retorne APENAS o array JSON. Nenhum texto antes ou depois.
-2. Se não houver substituto razoável para um ingrediente, omita-o.
-3. Baseie-se em química real: densidades, funções Maillard, glúten, emulsificação.
+2. Se não houver substituto razoável ou o ingrediente for básico (ex: Água, Sal), OMITA-O. NUNCA sugira substitutos para Água (como caldo de galinha) a menos que agregue um valor químico imenso.
+3. Baseie-se em química real: densidades, funções Maillard, glúten, emulsificação. Pode sugerir substitutos universais (como mel para açúcar, chia para ovos) se fizerem sentido para a despensa do usuário.
 4. "multiplier" é o fator em peso/volume pelo qual multiplicar a quantidade original.
-5. "waterAdjustmentAlert" só preencha se houver impacto real na umidade da receita.
-6. ATENÇÃO: NÃO crie substituições triviais que já são de conhecimento universal. Exemplos a EVITAR (NÃO repita): Açúcar Refinado -> Mel/Açúcar Mascavo/Demerara; Leite -> Leite Vegetal/Água; Manteiga -> Óleo/Margarina; Ovos -> Linhaça/Chia; Cacau -> Achocolatado; Limão -> Vinagre. Foco em ingredientes da lista fornecida!`;
+5. "waterAdjustmentAlert" só preencha se houver impacto real na umidade da receita.`;
 
     let key = apiKey;
     if (!key) {
