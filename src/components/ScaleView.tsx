@@ -44,8 +44,8 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
   const [checkedIngredients, setCheckedIngredients] = useState<Record<string, boolean>>({});
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [expandedSubId, setExpandedSubId] = useState<string | null>(null);
-  // activeSubs: por ingrediente id, guarda { multiplier, newName } da substituição ativa
-  const [activeSubs, setActiveSubs] = useState<Record<string, { multiplier: number, newName: string }>>({});
+  // activeSubs: por ingrediente id, guarda { multiplier, newName, liquidDeltaRatio } da substituição ativa
+  const [activeSubs, setActiveSubs] = useState<Record<string, { multiplier: number, newName: string, liquidDeltaRatio?: number }>>({});
 
   // Tipo unificado que normaliza ChemicalSubstitution canônica e CustomSubstitution do banco
   type UnifiedSub = {
@@ -56,6 +56,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
     physicalFunction: string;
     explanation: string;
     waterAdjustmentAlert?: string;
+    liquidDeltaRatio?: number;
     source: 'canonical' | 'user' | 'ai';
   };
 
@@ -77,6 +78,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
         physicalFunction: cs.physicalFunction,
         explanation: cs.explanation,
         waterAdjustmentAlert: cs.waterAdjustmentAlert,
+        liquidDeltaRatio: cs.liquidDeltaRatio,
         source: cs.source === 'ai' ? 'ai' : 'user',
       });
     }
@@ -96,6 +98,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
       physicalFunction: canonical.physicalFunction,
       explanation: canonical.explanation,
       waterAdjustmentAlert: canonical.waterAdjustmentAlert,
+      liquidDeltaRatio: canonical.liquidDeltaRatio,
       source: 'canonical',
     }] : [];
 
@@ -122,15 +125,48 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
   };
 
   const patchedRecipe = useMemo(() => {
+    let totalLiquidDelta = 0;
+    
+    // 1. Aplica substituições e soma o delta hídrico
+    const baseIngredients = recipe.ingredients.map(ing => {
+      const sub = activeSubs[ing.id];
+      if (sub) {
+        const newAmount = ing.amount * sub.multiplier;
+        if (sub.liquidDeltaRatio) {
+          // Ex: 75g de mel * -0.18 = -13.5g (abater 13.5g de água)
+          // Ex: 3g de bic  * -2.0  = -6.0g  (abater 6g de água devido ao suco de limão)
+          totalLiquidDelta += (newAmount * sub.liquidDeltaRatio);
+        }
+        return { ...ing, name: sub.newName, amount: newAmount };
+      }
+      return ing;
+    });
+
+    // 2. Se houver delta, aplica no líquido principal da receita
+    if (Math.abs(totalLiquidDelta) >= 1) {
+      const liquids = baseIngredients.filter(i => i.category === 'liquid' || /água|agua|leite|suco/i.test(i.name));
+      if (liquids.length > 0) {
+        liquids.sort((a, b) => b.amount - a.amount);
+        const targetIdx = baseIngredients.findIndex(i => i.id === liquids[0].id);
+        if (targetIdx !== -1) {
+          const originalLiqAmt = baseIngredients[targetIdx].amount;
+          const adjustedLiqAmt = Math.max(0, originalLiqAmt + totalLiquidDelta);
+          const diff = Math.round(adjustedLiqAmt - originalLiqAmt);
+          
+          if (diff !== 0) {
+            baseIngredients[targetIdx] = {
+              ...baseIngredients[targetIdx],
+              amount: adjustedLiqAmt,
+              name: `${baseIngredients[targetIdx].name} (Ajuste hídrico: ${diff > 0 ? '+' : ''}${diff}g/ml)`
+            };
+          }
+        }
+      }
+    }
+
     return {
       ...recipe,
-      ingredients: recipe.ingredients.map(ing => {
-        const sub = activeSubs[ing.id];
-        if (sub) {
-          return { ...ing, name: sub.newName, amount: ing.amount * sub.multiplier };
-        }
-        return ing;
-      })
+      ingredients: baseIngredients
     };
   }, [recipe, activeSubs]);
 
@@ -566,7 +602,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setActiveSubs(prev => ({ ...prev, [ing.id]: { multiplier: sub.multiplier!, newName: sub.overrideName || sub.substitute } }));
+                                setActiveSubs(prev => ({ ...prev, [ing.id]: { multiplier: sub.multiplier!, newName: sub.overrideName || sub.substitute, liquidDeltaRatio: sub.liquidDeltaRatio } }));
                                 setExpandedSubId(null);
                               }}
                               className="mt-2 w-full bg-theme-brand hover:bg-theme-brand-hover text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
