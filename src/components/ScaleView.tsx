@@ -1,10 +1,12 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Recipe, RecipeIngredient } from '../domain/schemas/recipe.schema.js';
+import { Recipe, RecipeIngredient, CustomSubstitution } from '../domain/schemas/recipe.schema.js';
 import { ScaleRecipeUseCase, ScaleOptions } from '../domain/use-cases/ScaleRecipe.js';
 import { ConvertUnitsUseCase } from '../domain/use-cases/ConvertUnits.js';
 import { useWakeLock } from '../hooks/useWakeLock.js';
 import { findChemicalSubstitution } from '../domain/index.js';
 import { formatHouseholdFraction } from '../utils/fractions.js';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../data/database.js';
 import {
   Lock,
   Unlock,
@@ -42,7 +44,62 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
   const [checkedIngredients, setCheckedIngredients] = useState<Record<string, boolean>>({});
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [expandedSubId, setExpandedSubId] = useState<string | null>(null);
+  // activeSubs: por ingrediente id, guarda { multiplier, newName } da substituição ativa
   const [activeSubs, setActiveSubs] = useState<Record<string, { multiplier: number, newName: string }>>({});
+
+  // Tipo unificado que normaliza ChemicalSubstitution canônica e CustomSubstitution do banco
+  type UnifiedSub = {
+    substitute: string;
+    multiplier?: number;
+    overrideName?: string;
+    ratio: string;
+    physicalFunction: string;
+    explanation: string;
+    waterAdjustmentAlert?: string;
+    source: 'canonical' | 'user' | 'ai';
+  };
+
+  // Carrega substituições customizadas do IndexedDB reativamente
+  const customSubs = useLiveQuery(() => db.custom_substitutions.toArray(), [], []) as CustomSubstitution[];
+
+  // Mapa normName → UnifiedSub[] (custom + canônica, custom tem prioridade de exibição)
+  const subsByIngredient = useMemo(() => {
+    const normFn = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const map = new Map<string, UnifiedSub[]>();
+    for (const cs of customSubs || []) {
+      const key = normFn(cs.originalIngredient);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push({
+        substitute: cs.substituteIngredient,
+        multiplier: cs.multiplier,
+        overrideName: cs.substituteIngredient,
+        ratio: cs.ratio,
+        physicalFunction: cs.physicalFunction,
+        explanation: cs.explanation,
+        waterAdjustmentAlert: cs.waterAdjustmentAlert,
+        source: cs.source === 'ai' ? 'ai' : 'user',
+      });
+    }
+    return map;
+  }, [customSubs]);
+
+  // Retorna o array unificado de substituições para um dado ingrediente (custom + canônica se houver)
+  const getSubsForIngredient = (ingName: string, isBaking: boolean): UnifiedSub[] => {
+    const normFn = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const customs = subsByIngredient.get(normFn(ingName)) || [];
+    const canonical = findChemicalSubstitution(ingName, isBaking);
+    const canonicalUnified: UnifiedSub[] = canonical ? [{
+      substitute: canonical.substitute,
+      multiplier: canonical.multiplier,
+      overrideName: canonical.overrideName,
+      ratio: canonical.ratio,
+      physicalFunction: canonical.physicalFunction,
+      explanation: canonical.explanation,
+      waterAdjustmentAlert: canonical.waterAdjustmentAlert,
+      source: 'canonical',
+    }] : [];
+    return [...customs, ...canonicalUnified];
+  };
   
   const touchStartX = useRef<number | null>(null);
   const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
@@ -389,9 +446,10 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
           {scaledResult.scaledIngredients.map((ing: RecipeIngredient) => {
             const isDone = !!checkedIngredients[ing.id];
             const originalIng = recipe.ingredients.find(o => o.id === ing.id) || ing;
-            const sub = findChemicalSubstitution(originalIng.name, recipe.isBakingRecipe);
+            const subs = getSubsForIngredient(originalIng.name, recipe.isBakingRecipe);
             const isSubOpen = expandedSubId === ing.id;
             const measurement = formatMeasurement(ing, displayMode);
+            const activeSubForIng = activeSubs[ing.id];
 
             return (
               <div
@@ -424,7 +482,12 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                             Despensa
                           </span>
                         )}
-                        {sub && (
+                        {activeSubForIng && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-semibold">
+                            Substituído
+                          </span>
+                        )}
+                        {subs.length > 0 && (
                           <button
                             type="button"
                             onClick={(e) => {
@@ -432,10 +495,10 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                               setExpandedSubId(isSubOpen ? null : ing.id);
                             }}
                             className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-theme-brand-text dark:text-amber-300 font-bold hover:bg-amber-500/25 flex items-center transition"
-                            title="Ver substituição físico-química"
+                            title="Ver substituições físico-químicas"
                           >
                             <FlaskConical className="w-3 h-3 mr-1 text-theme-brand-text dark:text-amber-400" />
-                            Substituição
+                            {subs.length > 1 ? `${subs.length} Substitutos` : 'Substituição'}
                           </button>
                         )}
                       </div>
@@ -450,53 +513,76 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                   </div>
                 </div>
 
-                {/* Bloco de Substituição Físico-Química Expandido */}
-                {sub && isSubOpen && (
-                  <div className="mt-3 pt-3 border-t border-amber-500/20 bg-amber-500/5 p-3 rounded-xl text-xs space-y-1.5 text-theme-main">
-                    <div className="flex items-center text-theme-brand-text dark:text-amber-200 font-bold">
-                      <FlaskConical className="w-3.5 h-3.5 mr-1.5 text-theme-brand-text dark:text-amber-400" />
-                      <span>Substituto: {sub.substitute}</span>
-                    </div>
-                    <p className="text-[11px] text-theme-muted">
-                      <strong className="text-theme-main">Proporção:</strong> {sub.ratio}
-                    </p>
-                    <p className="text-[11px] text-theme-muted">
-                      <strong className="text-theme-main">Função Química:</strong> {sub.physicalFunction}
-                    </p>
-                    <p className="text-[11px] text-theme-muted leading-relaxed">
-                      {sub.explanation}
-                    </p>
-                    {sub.multiplier && sub.overrideName && !activeSubs[ing.id] && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveSubs(prev => ({ ...prev, [ing.id]: { multiplier: sub.multiplier!, newName: sub.overrideName! } }));
-                          setExpandedSubId(null);
-                        }}
-                        className="mt-2 w-full bg-theme-brand hover:bg-theme-brand-hover text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
-                      >
-                        Aplicar Substituição
-                      </button>
-                    )}
-                    {activeSubs[ing.id] && (
+                {/* Bloco de Substituições Expandido — suporta múltiplas */}
+                {subs.length > 0 && isSubOpen && (
+                  <div className="mt-3 pt-3 border-t border-amber-500/20 space-y-3">
+                    {subs.map((sub, idx) => {
+                      const isActive = activeSubForIng?.newName === (sub.overrideName || sub.substitute);
+                      const sourceLabel = sub.source === 'ai' ? 'IA' : sub.source === 'canonical' ? 'Canônico' : 'Manual';
+                      const sourceBadgeClass = sub.source === 'ai'
+                        ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                        : sub.source === 'canonical'
+                        ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                        : 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30';
+
+                      return (
+                        <div key={idx} className="bg-amber-500/5 border border-amber-500/20 p-3 rounded-xl text-xs space-y-1.5 text-theme-main">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5 text-theme-brand-text dark:text-amber-200 font-bold">
+                              <FlaskConical className="w-3.5 h-3.5 text-theme-brand-text dark:text-amber-400 shrink-0" />
+                              <span>{sub.substitute}</span>
+                            </div>
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold ${sourceBadgeClass}`}>{sourceLabel}</span>
+                          </div>
+                          {sub.ratio && (
+                            <p className="text-[11px] text-theme-muted">
+                              <strong className="text-theme-main">Proporção:</strong> {sub.ratio}
+                            </p>
+                          )}
+                          {sub.physicalFunction && (
+                            <p className="text-[11px] text-theme-muted">
+                              <strong className="text-theme-main">Função Química:</strong> {sub.physicalFunction}
+                            </p>
+                          )}
+                          {sub.explanation && (
+                            <p className="text-[11px] text-theme-muted leading-relaxed">{sub.explanation}</p>
+                          )}
+                          {sub.waterAdjustmentAlert && (
+                            <div className="p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-theme-brand-text dark:text-amber-200 text-[11px] mt-1 font-mono font-medium">
+                              {sub.waterAdjustmentAlert}
+                            </div>
+                          )}
+                          {/* Botão Aplicar/Reverter */}
+                          {sub.multiplier && (sub.overrideName || sub.substitute) && !isActive && !activeSubForIng && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveSubs(prev => ({ ...prev, [ing.id]: { multiplier: sub.multiplier!, newName: sub.overrideName || sub.substitute } }));
+                                setExpandedSubId(null);
+                              }}
+                              className="mt-2 w-full bg-theme-brand hover:bg-theme-brand-hover text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
+                            >
+                              Aplicar — Substituir por {sub.substitute}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {/* Reverter sempre visível se há substituição ativa */}
+                    {activeSubForIng && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveSubs(prev => {
-                            const clone = {...prev};
+                            const clone = { ...prev };
                             delete clone[ing.id];
                             return clone;
                           });
                         }}
-                        className="mt-2 w-full bg-theme-card border border-theme-subtle text-theme-main px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
+                        className="w-full bg-theme-card border border-theme-subtle text-theme-main px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
                       >
-                        Reverter Original
+                        Reverter para {originalIng.name} (Original)
                       </button>
-                    )}
-                    {sub.waterAdjustmentAlert && (
-                      <div className="p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-theme-brand-text dark:text-amber-200 text-[11px] mt-1 font-mono font-medium">
-                        {sub.waterAdjustmentAlert}
-                      </div>
                     )}
                   </div>
                 )}
