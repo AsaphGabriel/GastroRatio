@@ -1,9 +1,7 @@
 import * as pdfjsLib from 'pdfjs-dist';
-// @ts-ignore - Vite specific URL import
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.js?url';
 
-// Configuração do Worker do PDF.js para Vite
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+// Configuração do Worker do PDF.js baseada em CDN para evitar bloqueios de CORS/Vite em ambientes Desktop
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
 
 export class ExtractTextFromPdfUseCase {
   static async execute(file: File): Promise<string> {

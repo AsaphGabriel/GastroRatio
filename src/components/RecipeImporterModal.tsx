@@ -37,12 +37,24 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
 
   const processPdf = async (file: File) => {
     try {
+      const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+      if (file.size > MAX_PDF_SIZE_BYTES) {
+        setErrorMsg(`O arquivo tem ${(file.size / (1024 * 1024)).toFixed(1)} MB. O limite máximo para receitas em PDF é de 10 MB.`);
+        return;
+      }
+
       setIsLoadingLocal(true);
       setErrorMsg(null);
       setPdfFile(file);
       const { ExtractTextFromPdfUseCase } = await import('../domain/use-cases/ExtractTextFromPdf.js');
       const text = await ExtractTextFromPdfUseCase.execute(file);
-      setRawText(text.substring(0, 5000));
+      const sanitized = text.substring(0, 5000);
+      
+      if (!sanitized.trim()) {
+        throw new Error('Nenhum texto legível encontrado neste PDF. Ele pode estar em formato de imagem (scaneado sem OCR).');
+      }
+      
+      setRawText(sanitized);
     } catch (err: any) {
       console.error("PDF Extraction Error:", err);
       setErrorMsg(`Falha na extração. Possíveis causas: (1) O PDF é uma imagem sem texto selecionável. (2) O arquivo está corrompido ou protegido. (3) Bloqueio de segurança (CSP/Worker). Detalhe técnico: ${err?.message || 'Desconhecido'}`);
