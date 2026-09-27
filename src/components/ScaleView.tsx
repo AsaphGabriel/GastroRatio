@@ -98,7 +98,16 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
       waterAdjustmentAlert: canonical.waterAdjustmentAlert,
       source: 'canonical',
     }] : [];
-    return [...customs, ...canonicalUnified];
+
+    // Filtra duplicatas óbvias (ex: IA sugeriu "Mel" e já existe "Mel de abelha" canônico)
+    const filteredCustoms = customs.filter(c => {
+      if (!canonical) return true;
+      const normA = normFn(c.substitute);
+      const normB = normFn(canonical.substitute);
+      return !(normA.includes(normB) || normB.includes(normA));
+    });
+
+    return [...filteredCustoms, ...canonicalUnified];
   };
   
   const touchStartX = useRef<number | null>(null);

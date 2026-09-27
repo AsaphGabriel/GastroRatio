@@ -310,7 +310,8 @@ Regras:
 2. Se não houver substituto razoável para um ingrediente, omita-o.
 3. Baseie-se em química real: densidades, funções Maillard, glúten, emulsificação.
 4. "multiplier" é o fator em peso/volume pelo qual multiplicar a quantidade original.
-5. "waterAdjustmentAlert" só preencha se houver impacto real na umidade da receita.`;
+5. "waterAdjustmentAlert" só preencha se houver impacto real na umidade da receita.
+6. ATENÇÃO: NÃO crie substituições triviais que já são de conhecimento universal. Exemplos a EVITAR (NÃO repita): Açúcar Refinado -> Mel/Açúcar Mascavo/Demerara; Leite -> Leite Vegetal/Água; Manteiga -> Óleo/Margarina; Ovos -> Linhaça/Chia; Cacau -> Achocolatado; Limão -> Vinagre. Foco em ingredientes da lista fornecida!`;
 
     let key = apiKey;
     if (!key) {
