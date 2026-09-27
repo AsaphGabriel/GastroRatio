@@ -336,7 +336,7 @@ export const PantryManagerView: React.FC = () => {
     <div className="space-y-5">
       {/* Cabeçalho */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-theme-brand-subtle text-theme-brand flex items-center justify-center shrink-0">
           <FlaskConical className="w-5 h-5" />
         </div>
         <div>
@@ -373,7 +373,7 @@ export const PantryManagerView: React.FC = () => {
         <button
           onClick={handleAiAnalyze}
           disabled={aiLoading}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-60 text-white text-xs font-bold transition shadow-sm"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-theme-brand hover:opacity-90 disabled:opacity-60 text-white text-xs font-bold transition shadow-sm"
         >
           {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
           {aiLoading ? 'Analisando substitutos com IA...' : 'Analisar Substitutos com IA (Gemini)'}
