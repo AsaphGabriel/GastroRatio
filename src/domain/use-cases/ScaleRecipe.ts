@@ -84,11 +84,25 @@ export class ScaleRecipeUseCase {
 
     // Recalcular ingredientes preservando precisão e Baker's %
     const scaledIngredients: RecipeIngredient[] = recipe.ingredients.map((ing) => {
+      let appliedFactor = factor;
+      
+      // Detecção de fermentos para escala não-linear (amortecida)
+      const isChemical = ing.category === 'leavening' || /fermento (qu[ií]mico|em p[oó])|bicarbonato/i.test(ing.name);
+      const isBiological = /fermento (biol[oó]gico|natural)|levedura/i.test(ing.name);
+
+      if (isChemical) {
+        // Escala sub-linear para fermento químico (evita amargor e colapso do bolo)
+        appliedFactor = factor > 1 ? Math.pow(factor, 0.75) : Math.pow(factor, 0.85);
+      } else if (isBiological) {
+        // Escala sub-linear para fermento biológico (evita superfermentação por inércia térmica)
+        appliedFactor = factor > 1 ? Math.pow(factor, 0.80) : factor;
+      }
+
       // Se for em gramas ou ml, arredondar para 1 casa decimal
-      const rawScaled = ing.amount * factor;
+      const rawScaled = ing.amount * appliedFactor;
       let roundedAmount = Math.round(rawScaled * 10) / 10;
 
-      // Para temperos muito pequenos (< 1g), manter 2 casas
+      // Para temperos/fermentos muito pequenos (< 1g), manter 2 casas
       if (rawScaled < 1 && rawScaled > 0) {
         roundedAmount = Math.round(rawScaled * 100) / 100;
       }
@@ -96,8 +110,9 @@ export class ScaleRecipeUseCase {
       return {
         ...ing,
         amount: roundedAmount,
-        // O Baker's % invariante relativo à farinha permanece rigorosamente constante sob escala linear
-        bakersPercentage: ing.bakersPercentage
+        // O Baker's % invariante relativo à farinha permanece rigorosamente constante sob escala linear.
+        // Para fermentos (escala não-linear), o baker's % visível mudará ligeiramente como reflexo da física.
+        bakersPercentage: isChemical || isBiological ? undefined : ing.bakersPercentage
       };
     });
 
