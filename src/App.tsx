@@ -159,6 +159,7 @@ export const App: React.FC = () => {
             onSelectRecipe={handleSelectRecipeForScale}
             onResetToSeed={handleResetToSeed}
             onDeleteRecipe={handleDeleteRecipe}
+            onSaveRecipe={handleSaveImportedRecipe}
           />
         )}
 
