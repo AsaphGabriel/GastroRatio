@@ -117,8 +117,11 @@ Regras Inegociáveis:
     const isGroq = key.startsWith('gsk_');
     const isOpenAI = key.startsWith('sk-proj-') || key.startsWith('sk-ant-') || key.startsWith('sk-');
     
-    let url = this.GEMINI_ENDPOINT + '?key=' + key;
-    let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    let url = this.GEMINI_ENDPOINT;
+    let headers: Record<string, string> = { 
+      'Content-Type': 'application/json',
+      'x-goog-api-key': key
+    };
     let requestBody: any = {};
 
     if (isGroq || isOpenAI) {
@@ -328,10 +331,13 @@ Regras:
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${key}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-goog-api-key': key
+          },
           signal: controller.signal,
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: SUBSTITUTION_SYSTEM_PROMPT }] },
@@ -353,7 +359,7 @@ Regras:
       return parsed
         .filter(s => s.originalIngredient && s.substituteIngredient)
         .map(s => CustomSubstitutionSchema.parse({
-          id: `sub-ai-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          id: generateId('sub-ai'),
           originalIngredient: String(s.originalIngredient).trim(),
           substituteIngredient: String(s.substituteIngredient).trim(),
           multiplier: typeof s.multiplier === 'number' ? s.multiplier : 1,

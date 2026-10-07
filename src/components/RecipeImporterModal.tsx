@@ -36,31 +36,16 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
 
   const processPdf = async (file: File) => {
-    try {
-      const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-      if (file.size > MAX_PDF_SIZE_BYTES) {
-        setErrorMsg(`O arquivo tem ${(file.size / (1024 * 1024)).toFixed(1)} MB. O limite máximo para receitas em PDF é de 10 MB.`);
-        return;
-      }
-
-      setIsLoadingLocal(true);
-      setErrorMsg(null);
-      setPdfFile(file);
-      const { ExtractTextFromPdfUseCase } = await import('../domain/use-cases/ExtractTextFromPdf.js');
-      const text = await ExtractTextFromPdfUseCase.execute(file);
-      const sanitized = text.substring(0, 5000);
-      
-      if (!sanitized.trim()) {
-        throw new Error('Nenhum texto legível encontrado neste PDF. Ele pode estar em formato de imagem (scaneado sem OCR).');
-      }
-      
-      setRawText(sanitized);
-    } catch (err: any) {
-      console.error("PDF Extraction Error:", err);
-      setErrorMsg(`Falha na extração. Possíveis causas: (1) O PDF é uma imagem sem texto selecionável. (2) O arquivo está corrompido ou protegido. (3) Bloqueio de segurança (CSP/Worker). Detalhe técnico: ${err?.message || 'Desconhecido'}`);
-    } finally {
-      setIsLoadingLocal(false);
+    const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+    if (file.size > MAX_PDF_SIZE_BYTES) {
+      setErrorMsg(`O arquivo tem ${(file.size / (1024 * 1024)).toFixed(1)} MB. O limite máximo para receitas em PDF é de 10 MB.`);
+      return;
     }
+
+    setErrorMsg(null);
+    setPdfFile(file);
+    setRawText('');
+    setWarningMsg('PDF selecionado. A leitura de PDFs exige o uso da extração com IA (Gemini).');
   };
 
   const onDragOver = (e: React.DragEvent) => {
@@ -294,7 +279,7 @@ export const RecipeImporterModal: React.FC<RecipeImporterModalProps> = ({
           <div className="flex flex-col sm:flex-row items-center gap-2">
             <button
               onClick={handleLocalParse}
-              disabled={isLoadingLocal || isLoadingAi || !rawText.trim()}
+              disabled={isLoadingLocal || isLoadingAi || !rawText.trim() || pdfFile !== null}
               className="w-full sm:flex-1 bg-theme-brand hover:opacity-90 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center transition touch-target disabled:opacity-50"
             >
               <Zap className="w-4 h-4 mr-1.5 shrink-0" />

@@ -1,12 +1,51 @@
 import { ParseRecipeResult, SanitizeAndParseRecipeUseCase } from './SanitizeAndParseRecipe.js';
 
 export class FetchRecipeFromUrlUseCase {
+  private static validateUrl(url: string): void {
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      throw new Error('URL inválida.');
+    }
+
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      throw new Error('Esquema de URL não suportado. Apenas HTTP e HTTPS são permitidos.');
+    }
+
+    const hostname = parsed.hostname;
+
+    const isLocalhost = hostname === 'localhost' || hostname.endsWith('.localhost');
+    const isIPv4Loopback = /^127\./.test(hostname);
+    const isIPv4Private10 = /^10\./.test(hostname);
+    const isIPv4Private172 = /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
+    const isIPv4Private192 = /^192\.168\./.test(hostname);
+    const isIPv4LinkLocal = /^169\.254\./.test(hostname);
+    const isIPv4Zero = /^0\./.test(hostname);
+    const isIPv6LoopbackOrLocal = hostname === '[::1]' || hostname.startsWith('[fc') || hostname.startsWith('[fd') || hostname.startsWith('[fe80');
+
+    if (
+      isLocalhost ||
+      isIPv4Loopback ||
+      isIPv4Private10 ||
+      isIPv4Private172 ||
+      isIPv4Private192 ||
+      isIPv4LinkLocal ||
+      isIPv4Zero ||
+      isIPv6LoopbackOrLocal
+    ) {
+      throw new Error('Acesso a endereços internos/reservados não é permitido (Prevenção SSRF).');
+    }
+  }
+
   public static async execute(url: string): Promise<ParseRecipeResult> {
+    this.validateUrl(url);
     const rawText = await this.extractRawTextFromUrl(url);
     return SanitizeAndParseRecipeUseCase.execute(rawText);
   }
 
   public static async extractRawTextFromUrl(url: string): Promise<string> {
+    this.validateUrl(url);
     // 1. Tenta usar o r.jina.ai (Bypass nativo de Cloudflare e conversão direta pra Markdown)
     try {
       const jinaUrl = `https://r.jina.ai/${url}`;
