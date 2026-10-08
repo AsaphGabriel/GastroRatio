@@ -301,11 +301,11 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
               </span>
               {recipe.mode === 'advanced' || recipe.isBakingRecipe ? (
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold border border-amber-500/20">
-                  ⚙️ Técnico
+                  Técnico
                 </span>
               ) : (
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-500/20">
-                  🟢 Prático
+                  Prático
                 </span>
               )}
             </div>

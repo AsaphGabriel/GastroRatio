@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Recipe, RecipeIngredient, RecipeSchema, IngredientCategory, RecipeMode } from '../domain/schemas/recipe.schema.js';
 import { GeminiSousChefAdapter } from '../domain/use-cases/AiProviderAdapter.js';
-import { X, Save, Plus, Trash2, GripVertical, AlertCircle, Sparkles, Check } from 'lucide-react';
+import { X, Save, Plus, Trash2, GripVertical, AlertCircle, Sparkles, Check, UtensilsCrossed, FlaskConical } from 'lucide-react';
 import { generateId } from '../utils/id.js';
 
 interface RecipeEditorModalProps {
@@ -268,7 +268,8 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
                   : 'text-theme-muted hover:text-theme-main'
               }`}
             >
-              <span>🟢 Modo Prático</span>
+              <UtensilsCrossed className="w-3.5 h-3.5" />
+              <span>Modo Prático</span>
               <span className="text-[10px] opacity-80 font-normal hidden sm:inline">(Sem fricção)</span>
             </button>
             <button
@@ -280,7 +281,8 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
                   : 'text-theme-muted hover:text-theme-main'
               }`}
             >
-              <span>⚙️ Modo Avançado</span>
+              <FlaskConical className="w-3.5 h-3.5" />
+              <span>Modo Avançado</span>
               <span className="text-[10px] opacity-80 font-normal hidden sm:inline">(Química & Padeiro)</span>
             </button>
           </div>
@@ -480,18 +482,18 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
                       <select
                         value={ing.category}
                         onChange={e => updateIngredient(idx, 'category', e.target.value)}
-                        className="w-full bg-theme-card border border-amber-500/30 rounded-xl px-2 py-2 text-[11px] text-theme-main focus:outline-none focus:border-amber-500 cursor-pointer"
+                        className="w-full bg-theme-card border border-amber-500/30 rounded-xl px-2.5 py-2 text-xs text-theme-main focus:outline-none focus:border-amber-500 cursor-pointer"
                         title="Categoria físico-química do ingrediente"
                       >
-                        <option value="flour_grain">🌾 Farinha/Grão</option>
-                        <option value="liquid">💧 Líquido</option>
-                        <option value="fat_oil">🧈 Gordura/Óleo</option>
-                        <option value="sugar_sweetener">🍯 Açúcar/Doce</option>
-                        <option value="leavening">🫧 Fermento</option>
-                        <option value="protein">🥩 Proteína</option>
-                        <option value="vegetable">🥦 Vegetal</option>
-                        <option value="dairy">🧀 Laticínio</option>
-                        <option value="staple_seasoning">🧂 Tempero/Sal</option>
+                        <option value="flour_grain">Farinha / Grão</option>
+                        <option value="liquid">Líquido</option>
+                        <option value="fat_oil">Gordura / Óleo</option>
+                        <option value="sugar_sweetener">Açúcar / Doce</option>
+                        <option value="leavening">Fermento / Aeração</option>
+                        <option value="protein">Proteína</option>
+                        <option value="vegetable">Vegetal</option>
+                        <option value="dairy">Laticínio</option>
+                        <option value="staple_seasoning">Tempero / Sal</option>
                       </select>
                     </div>
                   )}
@@ -552,22 +554,22 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
         </div>
 
         {/* Footer */}
-        <div className="px-4 sm:px-6 py-3.5 bg-theme-card-subtle border-t border-theme-subtle flex items-center justify-between gap-2">
+        <div className="px-4 sm:px-6 py-3.5 bg-theme-card-subtle border-t border-theme-subtle flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <span className="text-[11px] text-theme-muted hidden sm:inline">
-            {isAdvanced ? '⚙️ Salvará com parâmetros avançados' : '🟢 Salvará no modo prático direto'}
+            {isAdvanced ? 'Salvará com parâmetros avançados' : 'Salvará no modo prático direto'}
           </span>
-          <div className="flex gap-2">
+          <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-theme-muted hover:text-theme-main transition touch-target"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-theme-muted hover:text-theme-main transition touch-target border border-theme-subtle sm:border-transparent"
             >
               Cancelar
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-sm flex items-center transition touch-target"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center transition touch-target"
             >
               <Save className="w-4 h-4 mr-1.5" />
               Salvar Receita
