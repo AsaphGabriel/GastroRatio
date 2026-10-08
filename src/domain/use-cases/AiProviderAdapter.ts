@@ -377,4 +377,99 @@ Regras:
       clearTimeout(timeoutId);
     }
   }
+
+  /**
+   * Classificação heurística determinística offline para modo avançado
+   */
+  public static detectCategoryLocally(name: string): { category: any; isStaple: boolean } {
+    const n = name.toLowerCase().trim();
+    if (/farinha|trigo|fubá|fuba|aveia|amido|maizena|polvilho|cacau|chocolate|arroz|sêmola|semola/i.test(n)) {
+      return { category: 'flour_grain', isStaple: false };
+    }
+    if (/leite|água|agua|suco|vinagre|vinho|caldo|café|cafe|cerveja|molho de tomate/i.test(n)) {
+      return { category: 'liquid', isStaple: /água|agua|vinagre/i.test(n) };
+    }
+    if (/óleo|oleo|azeite|manteiga|margarina|banha|gordura/i.test(n)) {
+      return { category: 'fat_oil', isStaple: /óleo|oleo|azeite/i.test(n) };
+    }
+    if (/açúcar|acucar|mel|melaço|adoçante|adocante|xarope/i.test(n)) {
+      return { category: 'sugar_sweetener', isStaple: /açúcar|acucar/i.test(n) };
+    }
+    if (/fermento|bicarbonato/i.test(n)) {
+      return { category: 'leavening', isStaple: true };
+    }
+    if (/ovo|carne|frango|peixe|queijo|presunto|bacon|tofu|camarão|camarao/i.test(n)) {
+      return { category: 'protein', isStaple: false };
+    }
+    if (/sal|pimenta|orégano|oregano|alho|cebola|canela|noz-moscada|páprica|paprica/i.test(n)) {
+      return { category: 'staple_seasoning', isStaple: true };
+    }
+    if (/creme de leite|iogurte|requeijão|requeijao/i.test(n)) {
+      return { category: 'dairy', isStaple: false };
+    }
+    return { category: 'vegetable', isStaple: false };
+  }
+
+  /**
+   * Enriquecimento e classificação de categorias e propriedades técnicas via IA sob demanda
+   */
+  public static async enrichRecipeWithAi(
+    ingredients: Array<{ id: string; name: string; amount: number; unit: string }>,
+    apiKey?: string
+  ): Promise<Array<{ id: string; category: string; isStaple: boolean; isBaking: boolean }>> {
+    let key = apiKey;
+    if (!key) {
+      try {
+        const saved = sessionStorage.getItem('gastroratio_gemini_api_key_v2');
+        if (saved) key = atob(saved).split('').reverse().join('');
+      } catch { key = ''; }
+    }
+    if (!key) throw new Error('Configure a chave da IA em Ajustes para usar a análise assistida.');
+
+    const prompt = `Classifique cada um destes ingredientes culinários no schema estrito do GastroRatio:
+${JSON.stringify(ingredients.map(i => ({ id: i.id, name: i.name })))}
+
+Retorne APENAS um array JSON:
+[
+  {
+    "id": "id_original",
+    "category": "flour_grain" | "liquid" | "fat_oil" | "sugar_sweetener" | "leavening" | "protein" | "vegetable" | "dairy" | "staple_seasoning",
+    "isStaple": true/false,
+    "isBaking": true/false (indica se atua em massas/pães/bolos)
+  }
+]`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20_000);
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': key
+          },
+          signal: controller.signal,
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
+          })
+        }
+      );
+
+      if (!response.ok) throw new Error(`Erro na API (${response.status})`);
+      const data = await response.json();
+      let rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+      if (rawJson.startsWith('```')) rawJson = rawJson.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+      const parsed = JSON.parse(rawJson);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err: any) {
+      if (err.name === 'AbortError') throw new Error('Tempo limite da IA excedido (20s).');
+      throw err;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
 }

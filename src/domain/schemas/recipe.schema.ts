@@ -39,10 +39,15 @@ export const RecipeIngredientSchema = z.object({
 
 export type RecipeIngredient = z.infer<typeof RecipeIngredientSchema>;
 
+export const RecipeModeSchema = z.enum(['simple', 'advanced']).default('simple');
+
+export type RecipeMode = z.infer<typeof RecipeModeSchema>;
+
 export const RecipeSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(2),
   description: z.string().optional(),
+  mode: RecipeModeSchema,
   baseYield: z.number().positive(),
   yieldUnit: z.string().default('porções'),
   prepTimeMinutes: z.number().int().nonnegative().default(0),

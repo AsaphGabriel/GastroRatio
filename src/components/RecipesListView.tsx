@@ -1,22 +1,39 @@
 import React, { useState, useMemo } from 'react';
 import { Recipe } from '../domain/schemas/recipe.schema.js';
-import { Search, Clock, ChefHat, RotateCcw, Tag, Trash2 } from 'lucide-react';
+import { Search, Clock, ChefHat, RotateCcw, Tag, Trash2, Edit3, Copy, Plus } from 'lucide-react';
+import { RecipeEditorModal } from './RecipeEditorModal.js';
+import { generateId } from '../utils/id.js';
 
 interface RecipesListViewProps {
   recipes: Recipe[];
   onSelectRecipe: (recipe: Recipe) => void;
   onResetToSeed: () => void;
   onDeleteRecipe: (id: string) => void;
+  onSaveRecipe: (recipe: Recipe) => Promise<void>;
+  onOpenCreateModal?: () => void;
 }
 
 export const RecipesListView: React.FC<RecipesListViewProps> = ({
   recipes,
   onSelectRecipe,
   onResetToSeed,
-  onDeleteRecipe
+  onDeleteRecipe,
+  onSaveRecipe,
+  onOpenCreateModal
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('all');
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
+
+  const handleDuplicate = async (recipe: Recipe) => {
+    const duplicated: Recipe = {
+      ...recipe,
+      id: generateId('rec-dup'),
+      title: `${recipe.title} (Cópia)`
+    };
+    await onSaveRecipe(duplicated);
+  };
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
@@ -39,26 +56,40 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-      {/* Topo com Título e Restauração */}
+      {/* Topo com Título, Botão de Criação e Restauração */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
         <div>
           <h1 className="text-lg sm:text-xl font-black text-theme-main">Catálogo de Receitas</h1>
           <p className="text-xs text-theme-muted mt-0.5">
-            {recipes.length} receitas populares brasileiras em gramas exatos
+            {recipes.length} receitas culinárias salvas no seu aparelho
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            if (confirm('Deseja restaurar todas as receitas para a versão original de fábrica?')) {
-              onResetToSeed();
-            }
-          }}
-          className="flex items-center text-xs px-3 py-2 rounded-xl bg-theme-card hover:bg-theme-card-hover text-theme-muted border border-theme-subtle transition touch-target self-start sm:self-auto shadow-sm"
-        >
-          <RotateCcw className="w-3.5 h-3.5 mr-1.5 shrink-0" />
-          Restaurar Catálogo
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => onOpenCreateModal ? onOpenCreateModal() : setIsCreatingNew(true)}
+            className="flex items-center text-xs px-3.5 py-2 rounded-xl bg-theme-brand hover:opacity-90 text-white font-bold transition touch-target shadow-sm shadow-orange-500/20"
+            title="Criar nova receita manualmente"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+            Nova Receita
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm('Deseja restaurar todas as receitas para a versão original de fábrica?')) {
+                onResetToSeed();
+              }
+            }}
+            className="flex items-center text-xs px-3 py-2 rounded-xl bg-theme-card hover:bg-theme-card-hover text-theme-muted border border-theme-subtle transition touch-target shadow-sm"
+            title="Restaurar catálogo inicial"
+          >
+            <RotateCcw className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+            Restaurar
+          </button>
+        </div>
       </div>
 
       {/* Barra de Busca e Filtros */}
@@ -105,9 +136,20 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
           >
             <div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-card-subtle text-theme-dim font-bold uppercase border border-theme-subtle">
-                  {recipe.yieldUnit}: {recipe.baseYield}
-                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-card-subtle text-theme-dim font-bold uppercase border border-theme-subtle">
+                    {recipe.yieldUnit}: {recipe.baseYield}
+                  </span>
+                  {recipe.mode === 'advanced' || recipe.isBakingRecipe ? (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold border border-amber-500/20">
+                      Técnica
+                    </span>
+                  ) : (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-500/20">
+                      Prática
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center text-xs text-theme-muted">
                   <Clock className="w-3.5 h-3.5 mr-1 text-theme-dim" />
                   <span>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} min</span>
@@ -121,8 +163,25 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
               <span className="text-xs text-theme-dim">
                 {recipe.ingredients.length} ingredientes
               </span>
-              <div className="flex gap-2">
+              <div className="flex gap-1 sm:gap-2">
                 <button
+                  type="button"
+                  onClick={() => setEditingRecipe(recipe)}
+                  className="bg-transparent hover:bg-theme-card-hover text-theme-muted hover:text-theme-main p-1.5 rounded-xl transition touch-target flex items-center justify-center"
+                  title="Editar receita"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDuplicate(recipe)}
+                  className="bg-transparent hover:bg-theme-card-hover text-theme-muted hover:text-theme-main p-1.5 rounded-xl transition touch-target flex items-center justify-center"
+                  title="Duplicar receita"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     if (confirm(`Excluir receita "${recipe.title}"? Ela será removida da sua lista local.`)) {
                       onDeleteRecipe(recipe.id);
@@ -134,17 +193,36 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
                   <Trash2 className="w-4 h-4" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => onSelectRecipe(recipe)}
-                  className="bg-theme-card hover:bg-theme-brand hover:text-white text-theme-main border border-theme-subtle hover:border-theme-brand px-3.5 py-1.5 rounded-xl text-xs font-bold transition touch-target flex items-center shadow-sm"
+                  className="bg-theme-card hover:bg-theme-brand hover:text-white text-theme-main border border-theme-subtle hover:border-theme-brand px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold transition touch-target flex items-center shadow-sm ml-1"
                 >
-                  <ChefHat className="w-3.5 h-3.5 mr-1.5" />
-                  Modo Cozinha
+                  <ChefHat className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+                  <span className="hidden sm:inline">Modo Cozinha</span>
+                  <span className="sm:hidden">Cozinha</span>
                 </button>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Modal de Edição ou Criação */}
+      {(editingRecipe || isCreatingNew) && (
+        <RecipeEditorModal
+          isOpen={!!editingRecipe || isCreatingNew}
+          recipe={editingRecipe}
+          onClose={() => {
+            setEditingRecipe(null);
+            setIsCreatingNew(false);
+          }}
+          onSave={async (rec) => {
+            await onSaveRecipe(rec);
+            setEditingRecipe(null);
+            setIsCreatingNew(false);
+          }}
+        />
+      )}
     </div>
   );
 };

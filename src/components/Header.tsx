@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   UtensilsCrossed,
   BookOpen,
@@ -6,7 +5,7 @@ import {
   Settings,
   Wifi,
   WifiOff,
-  ClipboardList,
+  Plus,
   Sun,
   Moon
 } from 'lucide-react';
@@ -16,7 +15,7 @@ export type ActiveTab = 'catalog' | 'pantry' | 'scale' | 'settings';
 interface HeaderProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
-  onOpenImporter?: () => void;
+  onNewRecipe?: () => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
 }
@@ -24,7 +23,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
-  onOpenImporter,
+  onNewRecipe,
   theme,
   onToggleTheme
 }) => {
@@ -64,17 +63,17 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Ações do Topo: Importar + Alternar Tema + Status de Conexão */}
+        {/* Ações do Topo: Nova Receita + Alternar Tema + Status de Conexão */}
         <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
-          {onOpenImporter && (
+          {onNewRecipe && (
             <button
-              onClick={onOpenImporter}
+              onClick={onNewRecipe}
               className="flex items-center text-xs px-2.5 sm:px-3 py-1.5 rounded-xl bg-theme-brand hover:opacity-90 text-white font-semibold shadow-sm transition touch-target"
-              title="Importar receita (link ou texto)"
+              title="Adicionar nova receita manualmente"
             >
-              <ClipboardList className="w-3.5 h-3.5 mr-1 shrink-0" />
-              <span className="hidden sm:inline">Importar Receita</span>
-              <span className="sm:hidden">Importar</span>
+              <Plus className="w-3.5 h-3.5 mr-1 shrink-0" />
+              <span className="hidden sm:inline">Nova Receita</span>
+              <span className="sm:hidden">Criar</span>
             </button>
           )}
 

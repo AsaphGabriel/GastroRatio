@@ -295,9 +295,20 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
       <div className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 card-shadow space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div>
-            <span className="text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full bg-theme-brand-subtle text-theme-brand font-bold uppercase tracking-wider">
-              Modo Cozinha
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full bg-theme-brand-subtle text-theme-brand font-bold uppercase tracking-wider">
+                Modo Cozinha
+              </span>
+              {recipe.mode === 'advanced' || recipe.isBakingRecipe ? (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold border border-amber-500/20">
+                  ⚙️ Técnico
+                </span>
+              ) : (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-500/20">
+                  🟢 Prático
+                </span>
+              )}
+            </div>
             <h1 className="text-lg sm:text-2xl font-black text-theme-main mt-1.5 leading-tight">
               {recipe.title}
             </h1>

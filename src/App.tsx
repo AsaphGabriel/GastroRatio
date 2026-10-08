@@ -8,7 +8,7 @@ import { ScaleView } from './components/ScaleView.js';
 import { BakersView } from './components/BakersView.js';
 import { RecipesListView } from './components/RecipesListView.js';
 import { SettingsView } from './components/SettingsView.js';
-import { RecipeImporterModal } from './components/RecipeImporterModal.js';
+import { RecipeEditorModal } from './components/RecipeEditorModal.js';
 import { SWUpdater } from './components/SWUpdater.js';
 
 export const App: React.FC = () => {
@@ -16,23 +16,8 @@ export const App: React.FC = () => {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [assumeBasicStaples, setAssumeBasicStaples] = useState<boolean>(true);
   const [isDbReady, setIsDbReady] = useState(false);
-  const [isImporterOpen, setIsImporterOpen] = useState(false);
+  const [isNewRecipeOpen, setIsNewRecipeOpen] = useState(false);
   const [isBakersOpen, setIsBakersOpen] = useState(false);
-  const [initialImportText, setInitialImportText] = useState('');
-
-  useEffect(() => {
-    if (window.location.hash.startsWith('#import=')) {
-      try {
-        const rawParam = window.location.hash.replace('#import=', '');
-        const decoded = decodeURIComponent(rawParam);
-        setInitialImportText(decoded);
-        setIsImporterOpen(true);
-        window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      } catch (e) {
-        console.error('Failed to parse import hash');
-      }
-    }
-  }, []);
 
   // Sistema de Tema Duplo: Claro (Bege Culinário / Terracota) vs Escuro (Midnight Slate)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -147,7 +132,7 @@ export const App: React.FC = () => {
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenImporter={() => setIsImporterOpen(true)}
+        onNewRecipe={() => setIsNewRecipeOpen(true)}
         theme={theme}
         onToggleTheme={handleToggleTheme}
       />
@@ -160,6 +145,7 @@ export const App: React.FC = () => {
             onResetToSeed={handleResetToSeed}
             onDeleteRecipe={handleDeleteRecipe}
             onSaveRecipe={handleSaveImportedRecipe}
+            onOpenCreateModal={() => setIsNewRecipeOpen(true)}
           />
         )}
 
@@ -214,12 +200,15 @@ export const App: React.FC = () => {
         {activeTab === 'settings' && <SettingsView />}
       </main>
 
-      {isImporterOpen && (
-        <RecipeImporterModal
-          isOpen={isImporterOpen}
-          onClose={() => setIsImporterOpen(false)}
-          onSaveRecipe={handleSaveImportedRecipe}
-          initialRawText={initialImportText}
+      {isNewRecipeOpen && (
+        <RecipeEditorModal
+          isOpen={isNewRecipeOpen}
+          recipe={null}
+          onClose={() => setIsNewRecipeOpen(false)}
+          onSave={async (newRecipe) => {
+            await handleSaveImportedRecipe(newRecipe);
+            setIsNewRecipeOpen(false);
+          }}
         />
       )}
       <SWUpdater />
