@@ -116,7 +116,7 @@ body {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 0.75rem;
+  left: 2rem;
   width: 1px;
   background-color: rgba(107, 40, 48, 0.12);
   z-index: 0;

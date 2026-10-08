@@ -20,7 +20,10 @@ import {
   Circle,
   FlaskConical,
   Croissant,
-  Trash2
+  Trash2,
+  Scale,
+  Droplet,
+  Utensils
 } from 'lucide-react';
 
 interface ScaleViewProps {
@@ -292,8 +295,9 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
       </div>
 
       {/* 2. Cabeçalho da Receita com Controles de Escala */}
-      <div className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 card-shadow space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+      <div className="bg-theme-card border border-theme-subtle rounded-sm p-4 sm:p-5 card-shadow space-y-4 relative overflow-hidden notebook-paper">
+        <div className="vichy-ribbon-thick absolute top-0 left-0 right-0 z-0" />
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 relative z-10 mt-1">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full bg-theme-brand-subtle text-theme-brand font-bold uppercase tracking-wider">
@@ -457,8 +461,8 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
       </div>
 
       {/* 3. Tabela de Pesagem na Balança Digital */}
-      <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-3 card-shadow">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-theme-subtle">
+      <section className="bg-theme-card border border-theme-subtle rounded-sm p-4 sm:p-5 space-y-3 card-shadow relative overflow-hidden notebook-paper">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-theme-subtle border-dashed relative z-10">
           <div>
             <h2 className="text-xl sm:text-2xl font-serif font-bold text-theme-main">Ingredientes e Medidas</h2>
             <p className="text-[11px] sm:text-xs text-theme-muted font-serif italic mt-0.5">Zere a balança (Tara) a cada ingrediente pesado:</p>
@@ -467,33 +471,36 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
           <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
             <button
               onClick={() => setDisplayMode('precision')}
-              className={`text-[10px] px-2.5 py-1.5 rounded-lg font-bold transition touch-target shrink-0 ${
+              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 rounded-sm font-bold transition touch-target shrink-0 border ${
                 displayMode === 'precision'
-                  ? 'bg-theme-brand text-white shadow-sm'
-                  : 'bg-theme-card-subtle border border-theme-subtle text-theme-muted hover:text-theme-main'
+                  ? 'bg-theme-brand border-theme-brand text-white shadow-sm'
+                  : 'bg-theme-card-subtle border-theme-subtle text-theme-muted hover:text-theme-main'
               }`}
             >
-              ⚖️ g / kg
+              <Scale className="w-3.5 h-3.5" />
+              <span>g / kg</span>
             </button>
             <button
               onClick={() => setDisplayMode('smart')}
-              className={`text-[10px] px-2.5 py-1.5 rounded-lg font-bold transition touch-target shrink-0 ${
+              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 rounded-sm font-bold transition touch-target shrink-0 border ${
                 displayMode === 'smart'
-                  ? 'bg-theme-brand text-white shadow-sm'
-                  : 'bg-theme-card-subtle border border-theme-subtle text-theme-muted hover:text-theme-main'
+                  ? 'bg-theme-brand border-theme-brand text-white shadow-sm'
+                  : 'bg-theme-card-subtle border-theme-subtle text-theme-muted hover:text-theme-main'
               }`}
             >
-              🥛 Misto Inteligente
+              <Droplet className="w-3.5 h-3.5" />
+              <span>Misto Inteligente</span>
             </button>
             <button
               onClick={() => setDisplayMode('household')}
-              className={`text-[10px] px-2.5 py-1.5 rounded-lg font-bold transition touch-target shrink-0 ${
+              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 rounded-sm font-bold transition touch-target shrink-0 border ${
                 displayMode === 'household'
-                  ? 'bg-theme-brand text-white shadow-sm'
-                  : 'bg-theme-card-subtle border border-theme-subtle text-theme-muted hover:text-theme-main'
+                  ? 'bg-theme-brand border-theme-brand text-white shadow-sm'
+                  : 'bg-theme-card-subtle border-theme-subtle text-theme-muted hover:text-theme-main'
               }`}
             >
-              🥄 Medidas Caseiras
+              <Utensils className="w-3.5 h-3.5" />
+              <span>Medidas Caseiras</span>
             </button>
           </div>
         </div>
@@ -649,8 +656,8 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
       </section>
 
       {/* 4. Modo de Preparo Fatiado em Etapas (Lei de Miller) */}
-      <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-3 card-shadow">
-        <div className="flex items-center justify-between">
+      <section className="bg-theme-card border border-theme-subtle rounded-sm p-4 sm:p-5 space-y-3 card-shadow relative overflow-hidden notebook-paper">
+        <div className="flex items-center justify-between relative z-10">
           <h2 className="text-xl sm:text-2xl font-serif font-bold text-theme-main">
             Modo de Preparo — Etapa {activeStepIndex + 1} de {recipe.steps.length}
           </h2>

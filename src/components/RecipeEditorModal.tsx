@@ -5,6 +5,7 @@ import { X, Save, Plus, Trash2, GripVertical, AlertCircle, Sparkles, Check, Uten
 import { generateId } from '../utils/id.js';
 import { SegmentedControl } from './SegmentedControl.js';
 import { WheatDivider } from './WheatDivider.js';
+import { VintageCartoucheFrame } from './VintageCartoucheFrame.js';
 
 interface RecipeEditorModalProps {
   isOpen: boolean;
@@ -116,10 +117,11 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
 
   useEffect(() => {
     if (isOpen) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      document.body.style.overflow = 'hidden';
+      document.body.classList.add('overflow-hidden');
+      document.documentElement.classList.add('overflow-hidden');
       return () => {
-        document.body.style.overflow = originalStyle;
+        document.body.classList.remove('overflow-hidden');
+        document.documentElement.classList.remove('overflow-hidden');
       };
     }
   }, [isOpen]);
@@ -326,40 +328,42 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
           </button>
         </div>
 
-        {/* Seletor Segmentado de Modos (Trilho Contínuo Nivelado) */}
-        <div className="px-4 sm:px-6 pl-8 sm:pl-10 py-2.5 bg-theme-card-subtle border-b border-theme-subtle flex items-center justify-between flex-wrap gap-2 relative z-10">
-          <SegmentedControl<RecipeMode>
-            value={draft.mode || 'simple'}
-            onChange={(newMode) => handleToggleMode(newMode)}
-            options={[
-              {
-                id: 'simple',
-                label: 'Modo Prático',
-                sublabel: '(Dia a dia)',
-                icon: <UtensilsCrossed className="w-3.5 h-3.5 text-theme-wheat" />
-              },
-              {
-                id: 'advanced',
-                label: 'Modo Avançado',
-                sublabel: '(Padeiro/Química)',
-                icon: <FlaskConical className="w-3.5 h-3.5 text-theme-wheat" />
-              }
-            ]}
-          />
+        {/* Seletor Segmentado de Modos envolto no Cartouche Artesanal */}
+        <div className="mx-4 sm:mx-8 my-4 relative z-10 flex justify-center">
+          <VintageCartoucheFrame className="w-full sm:w-auto">
+            <SegmentedControl<RecipeMode>
+              value={draft.mode || 'simple'}
+              onChange={(newMode) => handleToggleMode(newMode)}
+              options={[
+                {
+                  id: 'simple',
+                  label: 'Modo Prático',
+                  sublabel: '(Dia a dia)',
+                  icon: <UtensilsCrossed className="w-3.5 h-3.5 text-theme-wheat" />
+                },
+                {
+                  id: 'advanced',
+                  label: 'Modo Avançado',
+                  sublabel: '(Padeiro/Química)',
+                  icon: <FlaskConical className="w-3.5 h-3.5 text-theme-wheat" />
+                }
+              ]}
+            />
 
-          {/* Botão de Enriquecimento por IA no Modo Avançado */}
-          {isAdvanced && (
-            <button
-              type="button"
-              onClick={handleEnrichWithAi}
-              disabled={isAiLoading || draft.ingredients.length === 0}
-              className="text-xs px-3 py-1.5 rounded-xl bg-theme-card hover:bg-theme-card-hover text-theme-brand border border-theme-subtle font-bold transition flex items-center gap-1.5 shadow-sm disabled:opacity-50 touch-target"
-              title="Classificar categorias físico-químicas automaticamente com a IA"
-            >
-              <Sparkles className={`w-3.5 h-3.5 ${isAiLoading ? 'animate-spin' : ''}`} />
-              <span>{isAiLoading ? 'Classificando...' : 'Auto-Classificar com IA'}</span>
-            </button>
-          )}
+            {/* Botão de Enriquecimento por IA no Modo Avançado */}
+            {isAdvanced && (
+              <button
+                type="button"
+                onClick={handleEnrichWithAi}
+                disabled={isAiLoading || draft.ingredients.length === 0}
+                className="text-xs px-3 py-1.5 rounded-xl bg-theme-card hover:bg-theme-card-hover text-theme-brand border border-theme-subtle font-bold transition flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 touch-target"
+                title="Classificar categorias físico-químicas automaticamente com a IA"
+              >
+                <Sparkles className={`w-3.5 h-3.5 ${isAiLoading ? 'animate-spin' : ''}`} />
+                <span>{isAiLoading ? 'Classificando...' : 'Auto-Classificar'}</span>
+              </button>
+            )}
+          </VintageCartoucheFrame>
         </div>
 
         {/* Form Body */}
@@ -599,7 +603,7 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
         </div>
 
         {/* Footer */}
-        <div className="px-4 sm:px-6 pl-8 sm:pl-10 py-4 bg-theme-card border-t-2 border-theme-strong flex items-center justify-between gap-3 relative z-10 w-full">
+        <div className="px-4 sm:px-6 pl-8 sm:pl-10 py-4 bg-theme-card border-t-2 border-theme-strong flex items-center justify-between relative z-10 w-full">
           <button
             type="button"
             onClick={onClose}
@@ -608,7 +612,7 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
             Cancelar
           </button>
           
-          <div className="flex items-center gap-3 ml-auto">
+          <div className="flex items-center gap-3">
             <span className="text-[11px] text-theme-dim hidden sm:inline font-serif italic">
               {isAdvanced ? 'Salvará com parâmetros avançados' : 'Salvará no modo prático direto'}
             </span>
