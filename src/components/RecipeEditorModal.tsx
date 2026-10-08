@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Recipe, RecipeIngredient, RecipeSchema, IngredientCategory, RecipeMode } from '../domain/schemas/recipe.schema.js';
 import { GeminiSousChefAdapter } from '../domain/use-cases/AiProviderAdapter.js';
-import { X, Save, Plus, Trash2, GripVertical, AlertCircle, Sparkles, Sliders, Check, HelpCircle } from 'lucide-react';
+import { X, Save, Plus, Trash2, GripVertical, AlertCircle, Sparkles, Check } from 'lucide-react';
 import { generateId } from '../utils/id.js';
 
 interface RecipeEditorModalProps {
