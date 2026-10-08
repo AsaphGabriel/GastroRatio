@@ -61,7 +61,7 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-black text-theme-main">Catálogo de Receitas</h1>
+            <h1 className="text-2xl sm:text-3xl font-serif font-black text-theme-main">Caderno de Receitas</h1>
             <WheatDivider className="w-16 h-4 text-theme-wheat hidden sm:inline" />
           </div>
           <p className="text-xs text-theme-muted mt-0.5">
@@ -136,46 +136,46 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
         {filteredRecipes.map((recipe) => (
           <div
             key={recipe.id}
-            className="bg-theme-card border border-theme-subtle rounded-2xl flex flex-col justify-between card-shadow hover:border-theme-strong transition overflow-hidden"
+            className="bg-theme-card border border-theme-strong rounded-lg flex flex-col justify-between card-shadow hover:shadow-md transition overflow-hidden relative"
           >
             {/* Fita Xadrez Tartã no topo do Card */}
-            <div className="vichy-ribbon" />
+            <div className="vichy-ribbon-thick" />
 
-            <div className="p-4 sm:p-5 flex flex-col justify-between space-y-3.5 flex-1">
-              <div>
+            <div className="p-4 sm:p-5 flex flex-col justify-between space-y-3.5 flex-1 bg-theme-card" style={{ backgroundImage: 'linear-gradient(var(--border-subtle) 1px, transparent 1px)', backgroundSize: '100% 1.5rem', backgroundPosition: '0 0.5rem' }}>
+              <div className="bg-theme-card/80 backdrop-blur-sm -m-2 p-2 rounded-lg">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-card-subtle text-theme-dim font-bold uppercase border border-theme-subtle">
+                    <span className="text-[10px] px-2 py-0.5 rounded-sm bg-theme-app text-theme-dim font-bold uppercase border border-theme-subtle shadow-sm">
                       {recipe.yieldUnit}: {recipe.baseYield}
                     </span>
                     {recipe.mode === 'advanced' || recipe.isBakingRecipe ? (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-wheat-subtle text-theme-wheat font-bold border border-theme-wheat/20">
+                      <span className="text-[10px] px-2 py-0.5 rounded-sm bg-theme-wheat-subtle text-theme-wheat font-bold border border-theme-wheat/20 shadow-sm">
                         Técnica
                       </span>
                     ) : (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-card-subtle text-theme-muted font-bold border border-theme-subtle">
+                      <span className="text-[10px] px-2 py-0.5 rounded-sm bg-theme-app text-theme-muted font-bold border border-theme-subtle shadow-sm">
                         Prática
                       </span>
                     )}
                   </div>
-                <div className="flex items-center text-xs text-theme-muted">
+                <div className="flex items-center text-xs text-theme-muted font-medium bg-theme-app px-2 py-0.5 rounded-sm border border-theme-subtle shadow-sm">
                   <Clock className="w-3.5 h-3.5 mr-1 text-theme-dim" />
-                  <span>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} min</span>
+                  <span>{recipe.prepTimeMinutes + recipe.cookTimeMinutes}m</span>
                 </div>
               </div>
-              <h3 className="text-base font-bold text-theme-main mt-2">{recipe.title}</h3>
-              <p className="text-xs text-theme-muted mt-1 line-clamp-2 leading-relaxed">{recipe.description}</p>
+              <h3 className="text-xl font-serif font-bold text-theme-main mt-3 leading-tight">{recipe.title}</h3>
+              <p className="text-sm text-theme-muted mt-1 line-clamp-2 leading-relaxed font-serif italic">{recipe.description}</p>
             </div>
 
-            <div className="pt-3 border-t border-theme-subtle flex items-center justify-between gap-2">
-              <span className="text-xs text-theme-dim">
-                {recipe.ingredients.length} ingredientes
+            <div className="pt-3 flex items-center justify-between gap-2 mt-auto">
+              <span className="text-xs text-theme-dim bg-theme-app px-2 py-1 rounded-sm border border-theme-subtle shadow-sm">
+                {recipe.ingredients.length} ingr.
               </span>
-              <div className="flex gap-1 sm:gap-2">
+              <div className="flex gap-1">
                 <button
                   type="button"
                   onClick={() => setEditingRecipe(recipe)}
-                  className="bg-transparent hover:bg-theme-card-hover text-theme-muted hover:text-theme-main p-1.5 rounded-xl transition touch-target flex items-center justify-center"
+                  className="bg-theme-app hover:bg-theme-card-hover text-theme-muted hover:text-theme-main p-2 rounded-sm border border-theme-subtle shadow-sm transition touch-target flex items-center justify-center"
                   title="Editar receita"
                 >
                   <Edit3 className="w-4 h-4" />
@@ -183,7 +183,7 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
                 <button
                   type="button"
                   onClick={() => handleDuplicate(recipe)}
-                  className="bg-transparent hover:bg-theme-card-hover text-theme-muted hover:text-theme-main p-1.5 rounded-xl transition touch-target flex items-center justify-center"
+                  className="bg-theme-app hover:bg-theme-card-hover text-theme-muted hover:text-theme-main p-2 rounded-sm border border-theme-subtle shadow-sm transition touch-target flex items-center justify-center"
                   title="Duplicar receita"
                 >
                   <Copy className="w-4 h-4" />
@@ -195,7 +195,7 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
                       onDeleteRecipe(recipe.id);
                     }
                   }}
-                  className="bg-transparent hover:bg-rose-500/10 text-theme-dim hover:text-rose-500 p-1.5 rounded-xl transition touch-target flex items-center justify-center"
+                  className="bg-theme-app hover:bg-rose-50 text-theme-dim hover:text-rose-600 p-2 rounded-sm border border-theme-subtle shadow-sm transition touch-target flex items-center justify-center"
                   title="Excluir receita"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -203,11 +203,11 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onSelectRecipe(recipe)}
-                  className="bg-theme-card-subtle hover:bg-theme-brand hover:text-white text-theme-main border border-theme-subtle hover:border-theme-brand px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold transition touch-target flex items-center shadow-none"
+                  className="bg-theme-brand hover:bg-theme-hover text-white px-3 py-2 rounded-sm font-bold transition touch-target flex items-center justify-center shadow-sm ml-1"
                   title="Abrir receita no Modo Cozinha"
                 >
-                  <ChefHat className="w-3.5 h-3.5 mr-1" />
-                  <span>Cozinha</span>
+                  <ChefHat className="w-4 h-4 mr-1.5" />
+                  <span>Preparar</span>
                 </button>
               </div>
             </div>

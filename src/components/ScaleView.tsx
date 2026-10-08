@@ -309,10 +309,10 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                 </span>
               )}
             </div>
-            <h1 className="text-lg sm:text-2xl font-black text-theme-main mt-1.5 leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-serif font-black text-theme-main mt-2 leading-tight">
               {recipe.title}
             </h1>
-            <p className="text-xs text-theme-muted mt-1 leading-relaxed">
+            <p className="text-sm text-theme-muted mt-1 leading-relaxed font-serif italic">
               {recipe.description}
             </p>
             {/* Peso total e por porção */}
@@ -460,8 +460,8 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
       <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-3 card-shadow">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-theme-subtle">
           <div>
-            <h2 className="text-sm sm:text-base font-bold text-theme-main">Ingredientes e Medidas</h2>
-            <p className="text-[11px] sm:text-xs text-theme-muted">Zere a balança (Tara) a cada ingrediente pesado:</p>
+            <h2 className="text-xl sm:text-2xl font-serif font-bold text-theme-main">Ingredientes e Medidas</h2>
+            <p className="text-[11px] sm:text-xs text-theme-muted font-serif italic mt-0.5">Zere a balança (Tara) a cada ingrediente pesado:</p>
           </div>
           
           <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
@@ -651,7 +651,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
       {/* 4. Modo de Preparo Fatiado em Etapas (Lei de Miller) */}
       <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-3 card-shadow">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm sm:text-base font-bold text-theme-main">
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-theme-main">
             Modo de Preparo — Etapa {activeStepIndex + 1} de {recipe.steps.length}
           </h2>
           <div className="flex space-x-1">

@@ -238,21 +238,24 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="bg-theme-card border border-theme-subtle rounded-3xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-theme-card border border-theme-strong rounded-lg w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden notebook-paper notebook-margin relative">
+        {/* Fita xadrez no topo simulando caderno encadernado */}
+        <div className="vichy-ribbon-thick absolute top-0 left-0 right-0 z-20" />
+        
         {/* Header com Seletor de Modo */}
-        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-theme-subtle flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-5 flex items-center justify-between relative z-10 mt-2">
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-theme-main flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-serif font-bold text-theme-main flex items-center gap-2">
               <span>{recipe ? 'Editar Receita' : 'Nova Receita'}</span>
               <WheatDivider className="w-12 h-3.5 text-theme-wheat opacity-70" />
             </h2>
-            <p className="text-[11px] sm:text-xs text-theme-muted">
+            <p className="text-[11px] sm:text-xs text-theme-muted font-serif italic mt-1">
               {isAdvanced ? 'Modo Técnico: proporções, panificação e química culinária.' : 'Modo Prático: adicione sem complicação.'}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-theme-card-subtle hover:bg-theme-card border border-theme-subtle flex items-center justify-center text-theme-muted hover:text-theme-main transition shrink-0"
+            className="w-8 h-8 rounded-sm bg-theme-app hover:bg-theme-card-subtle border border-theme-subtle flex items-center justify-center text-theme-muted hover:text-theme-main transition shrink-0 shadow-sm"
             title="Fechar"
           >
             <X className="w-4 h-4" />
@@ -547,22 +550,23 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
         </div>
 
         {/* Footer */}
-        <div className="px-4 sm:px-6 py-3.5 bg-theme-card-subtle border-t border-theme-subtle flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <span className="text-[11px] text-theme-muted hidden sm:inline">
-            {isAdvanced ? 'Salvará com parâmetros avançados' : 'Salvará no modo prático direto'}
-          </span>
-          <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-theme-muted hover:text-theme-main transition touch-target border border-theme-subtle sm:border-transparent"
-            >
-              Cancelar
-            </button>
+        <div className="px-4 sm:px-6 py-4 bg-theme-card border-t-2 border-theme-strong flex items-center justify-between gap-3 relative z-10">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-sm text-sm font-bold text-theme-muted hover:text-theme-main transition touch-target border border-theme-subtle hover:bg-theme-app shadow-sm"
+          >
+            Cancelar
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-theme-dim hidden sm:inline font-serif italic">
+              {isAdvanced ? 'Salvará com parâmetros avançados' : 'Salvará no modo prático direto'}
+            </span>
             <button
               type="button"
               onClick={handleSave}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center transition touch-target"
+              className="bg-emerald-700 hover:bg-emerald-600 border border-emerald-800 text-white px-6 py-2 rounded-sm text-sm font-bold shadow-sm flex items-center justify-center transition touch-target"
             >
               <Save className="w-4 h-4 mr-1.5" />
               Salvar Receita

@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: 'Playfair Display', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
 :root {
   color-scheme: light;
   /* Paleta Conforto & Pâtisserie Aconchegante: Linho Cru, Cereja Antigo e Trigo Seco */
@@ -63,7 +68,7 @@ body {
   margin: 0;
   background-color: var(--bg-app);
   color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   touch-action: manipulation;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -81,6 +86,45 @@ body {
   background-position: 0 0, 4px 4px;
   border-top-left-radius: inherit;
   border-top-right-radius: inherit;
+}
+
+.vichy-ribbon-thick {
+  height: 8px;
+  width: 100%;
+  background-color: var(--bg-card);
+  background-image: 
+    linear-gradient(45deg, rgba(107, 40, 48, 0.15) 25%, transparent 25%, transparent 75%, rgba(107, 40, 48, 0.15) 75%),
+    linear-gradient(45deg, rgba(107, 40, 48, 0.15) 25%, transparent 25%, transparent 75%, rgba(107, 40, 48, 0.15) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+/* Padrão de Papel Pautado de Caderno de Receitas */
+.notebook-paper {
+  background-color: var(--bg-card);
+  background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px);
+  background-size: 100% 2rem;
+  background-position: 0 2.5rem;
+}
+
+/* Margem Esquerda de Caderno (Linha Vermelha Tênue) */
+.notebook-margin {
+  position: relative;
+}
+.notebook-margin::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2.5rem;
+  width: 1px;
+  background-color: rgba(107, 40, 48, 0.2);
+  z-index: 0;
+  pointer-events: none;
+}
+.notebook-margin > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Utilitários Temáticos Semânticos */

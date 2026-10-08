@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
-              <span className="font-extrabold text-base sm:text-lg tracking-tight text-theme-main">
+              <span className="font-serif font-extrabold text-lg sm:text-xl tracking-tight text-theme-main">
                 GastroRatio
               </span>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-theme-brand-subtle text-theme-brand font-bold tracking-wider">
@@ -107,56 +107,60 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Barra de Navegação Responsiva — 4 abas */}
-      <nav className="max-w-4xl mx-auto mt-2.5 grid grid-cols-4 gap-1 bg-theme-card-subtle p-1 rounded-xl border border-theme-subtle">
+      {/* Barra de Navegação Responsiva — Abas Físicas de Fichário */}
+      <nav className="max-w-4xl mx-auto mt-4 flex overflow-x-auto gap-1 border-b-2 border-theme-strong relative z-10 px-1 sm:px-2 scrollbar-hide">
         <button
           onClick={() => setActiveTab('catalog')}
-          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
+          className={`flex items-center justify-center py-2.5 px-3 sm:px-5 rounded-t-xl text-xs sm:text-sm font-semibold transition touch-target border-t border-l border-r relative ${
             activeTab === 'catalog'
-              ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
-              : 'text-theme-muted hover:text-theme-main'
+              ? 'bg-theme-app text-theme-main border-theme-strong shadow-sm z-20'
+              : 'bg-theme-card-subtle text-theme-muted border-theme-subtle hover:bg-theme-card hover:text-theme-main z-0'
           }`}
+          style={{ marginBottom: activeTab === 'catalog' ? '-2px' : '0', borderBottomColor: activeTab === 'catalog' ? 'var(--bg-app)' : 'var(--border-strong)' }}
         >
-          <BookOpen className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
-          <span className="text-[10px] sm:text-xs">Receitas</span>
+          <BookOpen className="w-4 h-4 mr-1.5 sm:mr-2 shrink-0" />
+          <span>Receitas</span>
         </button>
 
         <button
           onClick={() => setActiveTab('pantry')}
-          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
+          className={`flex items-center justify-center py-2.5 px-3 sm:px-5 rounded-t-xl text-xs sm:text-sm font-semibold transition touch-target border-t border-l border-r relative ${
             activeTab === 'pantry'
-              ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
-              : 'text-theme-muted hover:text-theme-main'
+              ? 'bg-theme-app text-theme-main border-theme-strong shadow-sm z-20'
+              : 'bg-theme-card-subtle text-theme-muted border-theme-subtle hover:bg-theme-card hover:text-theme-main z-0'
           }`}
+          style={{ marginBottom: activeTab === 'pantry' ? '-2px' : '0', borderBottomColor: activeTab === 'pantry' ? 'var(--bg-app)' : 'var(--border-strong)' }}
         >
-          <UtensilsCrossed className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
-          <span className="text-[10px] sm:text-xs">Despensa</span>
+          <UtensilsCrossed className="w-4 h-4 mr-1.5 sm:mr-2 shrink-0" />
+          <span>Despensa</span>
         </button>
 
         <button
           onClick={() => setActiveTab('scale')}
-          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
+          className={`flex items-center justify-center py-2.5 px-3 sm:px-5 rounded-t-xl text-xs sm:text-sm font-semibold transition touch-target border-t border-l border-r relative ${
             activeTab === 'scale'
-              ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
-              : 'text-theme-muted hover:text-theme-main'
+              ? 'bg-theme-app text-theme-main border-theme-strong shadow-sm z-20'
+              : 'bg-theme-card-subtle text-theme-muted border-theme-subtle hover:bg-theme-card hover:text-theme-main z-0'
           }`}
+          style={{ marginBottom: activeTab === 'scale' ? '-2px' : '0', borderBottomColor: activeTab === 'scale' ? 'var(--bg-app)' : 'var(--border-strong)' }}
           title="Modo Cozinha — pese e acompanhe o preparo"
         >
-          <ChefHat className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
-          <span className="text-[10px] sm:text-xs">Cozinha</span>
+          <ChefHat className="w-4 h-4 mr-1.5 sm:mr-2 shrink-0" />
+          <span>Cozinha</span>
         </button>
 
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition touch-target ${
+          className={`flex items-center justify-center py-2.5 px-3 sm:px-5 rounded-t-xl text-xs sm:text-sm font-semibold transition touch-target border-t border-l border-r relative ml-auto ${
             activeTab === 'settings'
-              ? 'bg-theme-card text-theme-main shadow-sm border border-theme-subtle'
-              : 'text-theme-muted hover:text-theme-main'
+              ? 'bg-theme-app text-theme-main border-theme-strong shadow-sm z-20'
+              : 'bg-theme-card-subtle text-theme-muted border-theme-subtle hover:bg-theme-card hover:text-theme-main z-0'
           }`}
+          style={{ marginBottom: activeTab === 'settings' ? '-2px' : '0', borderBottomColor: activeTab === 'settings' ? 'var(--bg-app)' : 'var(--border-strong)' }}
           title="Configurações & Backup"
         >
-          <Settings className="w-4 h-4 sm:mr-1.5 shrink-0 mb-0.5 sm:mb-0" />
-          <span className="text-[10px] sm:text-xs">Ajustes</span>
+          <Settings className="w-4 h-4 mr-1.5 sm:mr-2 shrink-0" />
+          <span className="hidden sm:inline">Ajustes</span>
         </button>
       </nav>
     </header>
