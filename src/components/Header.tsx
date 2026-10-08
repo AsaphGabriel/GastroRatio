@@ -46,8 +46,8 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
         {/* Brand */}
         <div className="flex items-center space-x-2 shrink-0">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-theme-brand flex items-center justify-center text-white shadow-sm shadow-orange-500/20">
-            <ChefHat className="w-4 h-4 sm:w-5 sm:h-5" />
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-theme-brand flex items-center justify-center text-white shadow-sm">
+            <ChefHat className="w-4 h-4 sm:w-5 sm:h-5 text-theme-wheat" />
           </div>
           <div>
             <div className="flex items-center space-x-1.5">

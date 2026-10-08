@@ -3,6 +3,8 @@ import { Recipe, RecipeIngredient, RecipeSchema, IngredientCategory, RecipeMode 
 import { GeminiSousChefAdapter } from '../domain/use-cases/AiProviderAdapter.js';
 import { X, Save, Plus, Trash2, GripVertical, AlertCircle, Sparkles, Check, UtensilsCrossed, FlaskConical } from 'lucide-react';
 import { generateId } from '../utils/id.js';
+import { SegmentedControl } from './SegmentedControl.js';
+import { WheatDivider } from './WheatDivider.js';
 
 interface RecipeEditorModalProps {
   isOpen: boolean;
@@ -241,7 +243,8 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
         <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-theme-subtle flex items-center justify-between">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-theme-main flex items-center gap-2">
-              {recipe ? 'Editar Receita' : 'Nova Receita'}
+              <span>{recipe ? 'Editar Receita' : 'Nova Receita'}</span>
+              <WheatDivider className="w-12 h-3.5 text-theme-wheat opacity-70" />
             </h2>
             <p className="text-[11px] sm:text-xs text-theme-muted">
               {isAdvanced ? 'Modo Técnico: proporções, panificação e química culinária.' : 'Modo Prático: adicione sem complicação.'}
@@ -256,36 +259,26 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
           </button>
         </div>
 
-        {/* Seletor Segmentado de Modos (Simples vs Avançado) */}
-        <div className="px-4 sm:px-6 py-2.5 bg-theme-card-subtle/50 border-b border-theme-subtle flex items-center justify-between flex-wrap gap-2">
-          <div className="inline-flex p-1 bg-theme-card border border-theme-subtle rounded-2xl shadow-inner">
-            <button
-              type="button"
-              onClick={() => handleToggleMode('simple')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                !isAdvanced
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-theme-muted hover:text-theme-main'
-              }`}
-            >
-              <UtensilsCrossed className="w-3.5 h-3.5" />
-              <span>Modo Prático</span>
-              <span className="text-[10px] opacity-80 font-normal hidden sm:inline">(Sem fricção)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleToggleMode('advanced')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                isAdvanced
-                  ? 'bg-amber-600 text-white shadow-sm'
-                  : 'text-theme-muted hover:text-theme-main'
-              }`}
-            >
-              <FlaskConical className="w-3.5 h-3.5" />
-              <span>Modo Avançado</span>
-              <span className="text-[10px] opacity-80 font-normal hidden sm:inline">(Química & Padeiro)</span>
-            </button>
-          </div>
+        {/* Seletor Segmentado de Modos (Trilho Contínuo Nivelado) */}
+        <div className="px-4 sm:px-6 py-2.5 bg-theme-card-subtle border-b border-theme-subtle flex items-center justify-between flex-wrap gap-2">
+          <SegmentedControl<RecipeMode>
+            value={draft.mode || 'simple'}
+            onChange={(newMode) => handleToggleMode(newMode)}
+            options={[
+              {
+                id: 'simple',
+                label: 'Modo Prático',
+                sublabel: '(Dia a dia)',
+                icon: <UtensilsCrossed className="w-3.5 h-3.5 text-theme-wheat" />
+              },
+              {
+                id: 'advanced',
+                label: 'Modo Avançado',
+                sublabel: '(Padeiro/Química)',
+                icon: <FlaskConical className="w-3.5 h-3.5 text-theme-wheat" />
+              }
+            ]}
+          />
 
           {/* Botão de Enriquecimento por IA no Modo Avançado */}
           {isAdvanced && (
@@ -293,7 +286,7 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
               type="button"
               onClick={handleEnrichWithAi}
               disabled={isAiLoading || draft.ingredients.length === 0}
-              className="text-xs px-3 py-1.5 rounded-xl bg-theme-brand/10 hover:bg-theme-brand/20 text-theme-brand border border-theme-brand/20 font-bold transition flex items-center gap-1.5 disabled:opacity-50"
+              className="text-xs px-3 py-1.5 rounded-xl bg-theme-card hover:bg-theme-card-hover text-theme-brand border border-theme-subtle font-bold transition flex items-center gap-1.5 shadow-sm disabled:opacity-50 touch-target"
               title="Classificar categorias físico-químicas automaticamente com a IA"
             >
               <Sparkles className={`w-3.5 h-3.5 ${isAiLoading ? 'animate-spin' : ''}`} />

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Recipe } from '../domain/schemas/recipe.schema.js';
 import { Search, Clock, ChefHat, RotateCcw, Tag, Trash2, Edit3, Copy, Plus } from 'lucide-react';
 import { RecipeEditorModal } from './RecipeEditorModal.js';
+import { WheatDivider } from './WheatDivider.js';
 import { generateId } from '../utils/id.js';
 
 interface RecipesListViewProps {
@@ -59,7 +60,10 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
       {/* Topo com Título, Botão de Criação e Restauração */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
         <div>
-          <h1 className="text-lg sm:text-xl font-black text-theme-main">Catálogo de Receitas</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-black text-theme-main">Catálogo de Receitas</h1>
+            <WheatDivider className="w-16 h-4 text-theme-wheat hidden sm:inline" />
+          </div>
           <p className="text-xs text-theme-muted mt-0.5">
             {recipes.length} receitas culinárias salvas no seu aparelho
           </p>
@@ -69,7 +73,7 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
           <button
             type="button"
             onClick={() => onOpenCreateModal ? onOpenCreateModal() : setIsCreatingNew(true)}
-            className="flex items-center text-xs px-3.5 py-2 rounded-xl bg-theme-brand hover:opacity-90 text-white font-bold transition touch-target shadow-sm shadow-orange-500/20"
+            className="flex items-center text-xs px-3.5 py-2 rounded-xl bg-theme-brand hover:opacity-90 text-white font-bold transition touch-target shadow-sm"
             title="Criar nova receita manualmente"
           >
             <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" />
@@ -127,29 +131,33 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
         </div>
       </div>
 
-      {/* Grade de Receitas */}
+      {/* Grade de Receitas (Fichas com Fita Xadrez no Topo) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
         {filteredRecipes.map((recipe) => (
           <div
             key={recipe.id}
-            className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3.5 card-shadow hover:border-theme-strong transition"
+            className="bg-theme-card border border-theme-subtle rounded-2xl flex flex-col justify-between card-shadow hover:border-theme-strong transition overflow-hidden"
           >
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-card-subtle text-theme-dim font-bold uppercase border border-theme-subtle">
-                    {recipe.yieldUnit}: {recipe.baseYield}
-                  </span>
-                  {recipe.mode === 'advanced' || recipe.isBakingRecipe ? (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold border border-amber-500/20">
-                      Técnica
+            {/* Fita Xadrez Tartã no topo do Card */}
+            <div className="vichy-ribbon" />
+
+            <div className="p-4 sm:p-5 flex flex-col justify-between space-y-3.5 flex-1">
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-card-subtle text-theme-dim font-bold uppercase border border-theme-subtle">
+                      {recipe.yieldUnit}: {recipe.baseYield}
                     </span>
-                  ) : (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-500/20">
-                      Prática
-                    </span>
-                  )}
-                </div>
+                    {recipe.mode === 'advanced' || recipe.isBakingRecipe ? (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-wheat-subtle text-theme-wheat font-bold border border-theme-wheat/20">
+                        Técnica
+                      </span>
+                    ) : (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-card-subtle text-theme-muted font-bold border border-theme-subtle">
+                        Prática
+                      </span>
+                    )}
+                  </div>
                 <div className="flex items-center text-xs text-theme-muted">
                   <Clock className="w-3.5 h-3.5 mr-1 text-theme-dim" />
                   <span>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} min</span>
@@ -204,8 +212,9 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
               </div>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
+    </div>
 
       {/* Modal de Edição ou Criação */}
       {(editingRecipe || isCreatingNew) && (
