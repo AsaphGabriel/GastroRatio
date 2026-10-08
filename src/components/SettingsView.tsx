@@ -109,38 +109,39 @@ export const SettingsView: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-      <div className="border-b border-theme-subtle pb-3">
-        <h1 className="text-lg sm:text-xl font-black text-theme-main">Configurações & Privacidade</h1>
-        <p className="text-xs text-theme-muted mt-0.5">
+      <div className="border-b-2 border-theme-subtle border-dashed pb-3 text-center sm:text-left">
+        <h1 className="text-xl sm:text-2xl font-serif font-bold text-theme-main">Ajustes da Cozinha</h1>
+        <p className="text-xs text-theme-muted mt-0.5 font-serif italic">
           Arquitetura Local-First, controle de IA e persistência soberana no cliente.
         </p>
       </div>
 
       {/* Assistente de IA: Gemini Flash (BYOK) */}
-      <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-3.5 card-shadow">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-theme-brand-subtle text-theme-brand flex items-center justify-center shrink-0">
+      <section className="bg-theme-card border border-theme-subtle rounded-sm p-4 sm:p-5 space-y-3.5 shadow-sm notebook-paper relative overflow-hidden">
+        <div className="vichy-ribbon-thick absolute top-0 left-0 right-0 z-0 h-1.5 opacity-80" />
+        <div className="flex items-center space-x-3 relative z-10 pt-1">
+          <div className="w-10 h-10 rounded-full bg-amber-900/10 dark:bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-900/20">
             <Key className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm sm:text-base font-bold text-theme-main">Chave de IA Gemini (BYOK — Opcional)</h2>
-            <p className="text-xs text-theme-muted">
-              Utilizada apenas para o parse de receitas caóticas da internet. O app funciona 100% offline sem ela.{' '}
+            <h2 className="text-sm sm:text-base font-bold text-theme-main font-serif">Chave Mestra de IA (Opcional)</h2>
+            <p className="text-xs text-theme-muted font-serif">
+              Utilizada para parse inteligente. O app funciona 100% offline sem ela.{' '}
               <a 
                 href="https://aistudio.google.com/app/apikey" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-theme-brand hover:underline font-bold"
               >
-                Obter chave gratuita no Google AI Studio →
+                Obter chave gratuita →
               </a>
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSaveApiKey} className="space-y-3 pt-1">
+        <form onSubmit={handleSaveApiKey} className="space-y-3 pt-1 relative z-10">
           <div>
-            <label className="text-xs text-theme-main font-semibold flex items-center justify-between mb-1">
+            <label className="text-xs text-theme-main font-bold font-serif flex items-center justify-between mb-1">
               API Key (Gemini, Groq ou OpenAI):
               <button
                 type="button"
@@ -165,21 +166,21 @@ export const SettingsView: React.FC = () => {
                 }}
                 className="text-[10px] text-theme-brand hover:underline font-bold"
               >
-                📋 Colar e Salvar
+                📋 Colar
               </button>
             </label>
             <input
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Cole sua chave AIzaSy... (armazenada apenas no seu navegador)"
-              className="w-full bg-theme-card-subtle border border-theme-subtle rounded-xl px-4 py-2.5 text-xs text-theme-main placeholder:text-theme-dim focus:outline-none focus:border-theme-brand font-mono transition"
+              placeholder="Cole sua chave AIzaSy..."
+              className="w-full bg-theme-card-subtle border border-theme-subtle rounded-sm px-4 py-2.5 text-xs text-theme-main placeholder:text-theme-dim focus:outline-none focus:border-theme-brand font-mono transition"
             />
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
-            <p className="text-[11px] text-theme-dim">
-              Deixe em branco para usar o parser determinístico local em 0ms.
+            <p className="text-[11px] text-theme-dim font-serif italic">
+              Deixe em branco para usar o parser local.
             </p>
             <div className="flex items-center gap-2">
               <button
@@ -228,21 +229,21 @@ export const SettingsView: React.FC = () => {
                     alert(`🔴 Erro de rede: ${err.message}`);
                   }
                 }}
-                className="bg-theme-card border border-theme-subtle hover:bg-theme-card-hover text-theme-main px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm touch-target shrink-0"
+                className="bg-theme-card border border-theme-subtle hover:bg-theme-card-hover text-theme-main px-4 py-2 rounded-sm text-xs font-bold font-serif transition shadow-sm touch-target shrink-0"
               >
-                Testar Conexão
+                Testar
               </button>
               <button
                 type="submit"
-                className="bg-theme-brand hover:opacity-90 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center transition shadow-sm touch-target shrink-0"
+                className="bg-theme-brand hover:opacity-90 text-white px-4 py-2 rounded-sm text-xs font-bold font-serif flex items-center justify-center transition shadow-sm touch-target shrink-0"
               >
                 {savedSuccess ? (
                   <>
                     <Check className="w-4 h-4 mr-1 text-white" />
-                    Salvo com Sucesso!
+                    Salvo!
                   </>
                 ) : (
-                  'Salvar Chave'
+                  'Salvar'
                 )}
               </button>
             </div>
@@ -251,58 +252,59 @@ export const SettingsView: React.FC = () => {
       </section>
 
       {/* Backup e Exportação Local (IndexedDB) */}
-      <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-3.5 card-shadow">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+      <section className="bg-theme-card border border-theme-subtle rounded-sm p-4 sm:p-5 space-y-3.5 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-sky-700/50" />
+        <div className="flex items-center space-x-3 pl-2">
+          <div className="w-10 h-10 rounded-full bg-sky-900/10 dark:bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 border border-sky-900/20">
             <Database className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm sm:text-base font-bold text-theme-main">Persistência Local & Backup</h2>
-            <p className="text-xs text-theme-muted">
-              Seus cadernos de receitas e bancada residem no banco de dados do seu dispositivo (IndexedDB).
+            <h2 className="text-sm sm:text-base font-bold text-theme-main font-serif">Persistência & Arquivo Postal</h2>
+            <p className="text-xs text-theme-muted font-serif">
+              Seus cadernos residem no dispositivo. Exporte para guardar.
             </p>
           </div>
         </div>
 
-        <div className="pt-1 flex items-center space-x-2.5 flex-wrap gap-2">
+        <div className="pt-1 pl-2 flex items-center space-x-2.5 flex-wrap gap-2">
           <button
             onClick={handleExportBackup}
-            className="flex items-center px-4 py-2.5 rounded-xl bg-theme-card border border-theme-subtle hover:bg-theme-card-hover text-xs font-bold text-theme-main transition shadow-sm touch-target"
+            className="flex items-center px-4 py-2.5 rounded-sm bg-[#5C1D24] hover:bg-[#4a171d] border border-[#3e1318] text-xs font-bold text-[#F9F5EC] transition shadow-md touch-target font-serif"
           >
-            <Download className="w-4 h-4 mr-2 text-sky-600 dark:text-sky-400 shrink-0" />
-            Exportar Backup JSON
+            <Download className="w-4 h-4 mr-2 opacity-80 shrink-0" />
+            Exportar Caderno
           </button>
 
-          <label className="flex items-center px-4 py-2.5 rounded-xl bg-theme-card border border-theme-subtle hover:bg-theme-card-hover text-xs font-bold text-theme-main transition cursor-pointer shadow-sm touch-target">
-            <Upload className="w-4 h-4 mr-2 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            Restaurar Backup JSON
+          <label className="flex items-center px-4 py-2.5 rounded-sm bg-theme-card border border-theme-subtle hover:bg-theme-card-hover border-dashed text-xs font-bold text-theme-main transition cursor-pointer shadow-sm touch-target font-serif">
+            <Upload className="w-4 h-4 mr-2 text-theme-muted shrink-0" />
+            Importar Receitas
             <input type="file" accept=".json" onChange={handleImportBackup} className="sr-only" />
           </label>
         </div>
       </section>
 
       {/* Laboratório do Chef — Gestor de Ingredientes */}
-      <section className="bg-theme-card border border-theme-subtle rounded-2xl p-4 sm:p-5 space-y-4 card-shadow">
+      <section className="bg-theme-card border border-theme-subtle rounded-sm p-4 sm:p-5 space-y-4 shadow-sm notebook-paper">
         <PantryManagerView />
       </section>
 
       {/* Conformidade e LGPD */}
-      <section className="bg-theme-card-subtle border border-theme-subtle rounded-2xl p-4 sm:p-5 flex items-start space-x-3">
-        <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-        <div className="text-xs text-theme-muted space-y-1">
-          <h3 className="font-bold text-theme-main">Privacidade & Soberania por Padrão</h3>
+      <section className="bg-theme-card-subtle border border-theme-subtle rounded-sm p-4 sm:p-5 flex items-start space-x-3">
+        <ShieldCheck className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
+        <div className="text-xs text-theme-muted space-y-1 font-serif">
+          <h3 className="font-bold text-theme-main">Privacidade Absoluta</h3>
           <p className="leading-relaxed">
-            O GastroRatio é uma aplicação 100% estática e offline (PWA). Ele não envia seus dados para nenhum servidor em nuvem nem coleta rastreadores.
+            O GastroRatio é 100% offline (PWA). Sem nuvem, sem rastreadores.
           </p>
         </div>
       </section>
 
       {/* Zona de Perigo - Reset */}
-      <section className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-8">
-        <div className="text-xs space-y-1">
-          <h3 className="font-bold text-rose-700 dark:text-rose-400">Restaurar Padrões de Fábrica</h3>
-          <p className="text-rose-600/80 dark:text-rose-400/80 max-w-md">
-            Apaga TODAS as suas receitas customizadas, despensa e chaves de IA, e recarrega o catálogo canônico. Essa ação não pode ser desfeita.
+      <section className="bg-rose-900/10 border border-rose-900/20 rounded-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-8">
+        <div className="text-xs space-y-1 font-serif">
+          <h3 className="font-bold text-rose-800 dark:text-rose-400">Limpar Cozinha</h3>
+          <p className="text-rose-700/80 dark:text-rose-400/80 max-w-md italic">
+            Apaga suas receitas, despensa e chaves. Irreversível.
           </p>
         </div>
         <button
@@ -315,7 +317,7 @@ export const SettingsView: React.FC = () => {
               window.location.reload();
             }
           }}
-          className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm touch-target shrink-0"
+          className="bg-rose-700 hover:bg-rose-800 text-[#F9F5EC] px-4 py-2 rounded-sm text-xs font-bold font-serif transition shadow-sm touch-target shrink-0 border border-rose-900"
         >
           Resetar App
         </button>

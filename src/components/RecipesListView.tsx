@@ -203,7 +203,7 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onSelectRecipe(recipe)}
-                  className="bg-theme-brand hover:bg-theme-hover text-white px-3 py-2 rounded-sm font-bold transition touch-target flex items-center justify-center shadow-sm ml-1"
+                  className="bg-theme-app hover:bg-theme-card border border-theme-strong text-theme-main px-3 py-2 rounded-sm font-bold transition touch-target flex items-center justify-center shadow-sm"
                   title="Abrir receita no Modo Cozinha"
                 >
                   <ChefHat className="w-4 h-4 mr-1.5" />

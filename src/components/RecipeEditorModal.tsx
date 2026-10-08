@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Recipe, RecipeIngredient, RecipeSchema, IngredientCategory, RecipeMode } from '../domain/schemas/recipe.schema.js';
 import { GeminiSousChefAdapter } from '../domain/use-cases/AiProviderAdapter.js';
-import { X, Save, Plus, Trash2, GripVertical, AlertCircle, Sparkles, Check, UtensilsCrossed, FlaskConical } from 'lucide-react';
+import { X, Save, Plus, Trash2, GripVertical, AlertCircle, Sparkles, Check, UtensilsCrossed, FlaskConical, ChevronDown, Wheat, Droplets, Egg, Cherry, Snowflake, Apple, Milk, Flame } from 'lucide-react';
 import { generateId } from '../utils/id.js';
 import { SegmentedControl } from './SegmentedControl.js';
 import { WheatDivider } from './WheatDivider.js';
@@ -12,6 +12,60 @@ interface RecipeEditorModalProps {
   onClose: () => void;
   onSave: (recipe: Recipe) => Promise<void>;
 }
+
+const CategorySelect = ({ value, onChange, isAdvanced }: { value: string, onChange: (val: string) => void, isAdvanced: boolean }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  if (!isAdvanced) return null;
+
+  const categories = [
+    { id: 'flour_grain', label: 'Farinha / Grão', icon: Wheat },
+    { id: 'liquid', label: 'Líquido', icon: Droplets },
+    { id: 'fat_oil', label: 'Gordura / Óleo', icon: Egg },
+    { id: 'sugar_sweetener', label: 'Açúcar / Doce', icon: Cherry },
+    { id: 'leavening', label: 'Fermento', icon: Snowflake },
+    { id: 'protein', label: 'Proteína', icon: Egg },
+    { id: 'vegetable', label: 'Vegetal', icon: Apple },
+    { id: 'dairy', label: 'Laticínio', icon: Milk },
+    { id: 'staple_seasoning', label: 'Tempero / Sal', icon: Flame },
+  ];
+
+  const currentCategory = categories.find(c => c.id === value) || categories[0];
+  const Icon = currentCategory.icon;
+
+  return (
+    <div className="relative w-full sm:w-44">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+        className="w-full bg-theme-card border border-amber-500/30 rounded-xl px-2.5 py-2 text-xs text-theme-main focus:outline-none focus:border-amber-500 cursor-pointer flex items-center justify-between shadow-sm"
+      >
+        <div className="flex items-center gap-1.5">
+          <Icon className="w-3.5 h-3.5 text-amber-600" />
+          <span className="truncate">{currentCategory.label}</span>
+        </div>
+        <ChevronDown className="w-3 h-3 opacity-50" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 top-full left-0 mt-1 w-full bg-theme-card border border-theme-subtle rounded-xl shadow-xl overflow-hidden py-1 notebook-paper max-h-48 overflow-y-auto">
+          {categories.map(c => (
+            <button
+              key={c.id}
+              type="button"
+              onMouseDown={(e) => { e.preventDefault(); onChange(c.id); setIsOpen(false); }}
+              className={`w-full text-left px-2.5 py-1.5 text-xs flex items-center gap-2 hover:bg-theme-card-hover transition ${value === c.id ? 'bg-amber-500/10 text-amber-800' : 'text-theme-main'}`}
+            >
+              <c.icon className={`w-3.5 h-3.5 ${value === c.id ? 'text-amber-600' : 'text-theme-dim'}`} />
+              <span className="truncate">{c.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, recipe, onClose, onSave }) => {
   const [draft, setDraft] = useState<Recipe | null>(null);
@@ -59,6 +113,16 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
       setDraft(null);
     }
   }, [recipe, isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [isOpen]);
 
   if (!isOpen || !draft) return null;
 
@@ -243,7 +307,7 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
         <div className="vichy-ribbon-thick absolute top-0 left-0 right-0 z-20" />
         
         {/* Header com Seletor de Modo */}
-        <div className="px-4 sm:px-6 py-3.5 sm:py-5 flex items-center justify-between relative z-10 mt-2">
+        <div className="px-4 sm:px-6 pl-8 sm:pl-10 py-3.5 sm:py-5 flex items-center justify-between relative z-10 mt-2">
           <div>
             <h2 className="text-xl sm:text-2xl font-serif font-bold text-theme-main flex items-center gap-2">
               <span>{recipe ? 'Editar Receita' : 'Nova Receita'}</span>
@@ -263,7 +327,7 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
         </div>
 
         {/* Seletor Segmentado de Modos (Trilho Contínuo Nivelado) */}
-        <div className="px-4 sm:px-6 py-2.5 bg-theme-card-subtle border-b border-theme-subtle flex items-center justify-between flex-wrap gap-2">
+        <div className="px-4 sm:px-6 pl-8 sm:pl-10 py-2.5 bg-theme-card-subtle border-b border-theme-subtle flex items-center justify-between flex-wrap gap-2 relative z-10">
           <SegmentedControl<RecipeMode>
             value={draft.mode || 'simple'}
             onChange={(newMode) => handleToggleMode(newMode)}
@@ -299,7 +363,7 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
         </div>
 
         {/* Form Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1">
+        <div className="p-4 sm:p-6 pl-8 sm:pl-10 overflow-y-auto space-y-6 flex-1 relative z-10">
           {errorMsg && (
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs flex items-center">
               <AlertCircle className="w-4 h-4 mr-2 shrink-0" />
@@ -473,26 +537,11 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
                   </div>
 
                   {/* Categoria Físico-Química (Apenas Modo Avançado) */}
-                  {isAdvanced && (
-                    <div className="w-full sm:w-36">
-                      <select
-                        value={ing.category}
-                        onChange={e => updateIngredient(idx, 'category', e.target.value)}
-                        className="w-full bg-theme-card border border-amber-500/30 rounded-xl px-2.5 py-2 text-xs text-theme-main focus:outline-none focus:border-amber-500 cursor-pointer"
-                        title="Categoria físico-química do ingrediente"
-                      >
-                        <option value="flour_grain">Farinha / Grão</option>
-                        <option value="liquid">Líquido</option>
-                        <option value="fat_oil">Gordura / Óleo</option>
-                        <option value="sugar_sweetener">Açúcar / Doce</option>
-                        <option value="leavening">Fermento / Aeração</option>
-                        <option value="protein">Proteína</option>
-                        <option value="vegetable">Vegetal</option>
-                        <option value="dairy">Laticínio</option>
-                        <option value="staple_seasoning">Tempero / Sal</option>
-                      </select>
-                    </div>
-                  )}
+                  <CategorySelect 
+                    value={ing.category} 
+                    onChange={(val) => updateIngredient(idx, 'category', val)} 
+                    isAdvanced={isAdvanced} 
+                  />
 
                   <button
                     type="button"
@@ -550,7 +599,7 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
         </div>
 
         {/* Footer */}
-        <div className="px-4 sm:px-6 py-4 bg-theme-card border-t-2 border-theme-strong flex items-center justify-between gap-3 relative z-10">
+        <div className="px-4 sm:px-6 pl-8 sm:pl-10 py-4 bg-theme-card border-t-2 border-theme-strong flex items-center justify-between gap-3 relative z-10 w-full">
           <button
             type="button"
             onClick={onClose}
@@ -559,7 +608,7 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
             Cancelar
           </button>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 ml-auto">
             <span className="text-[11px] text-theme-dim hidden sm:inline font-serif italic">
               {isAdvanced ? 'Salvará com parâmetros avançados' : 'Salvará no modo prático direto'}
             </span>
