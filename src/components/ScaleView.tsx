@@ -400,7 +400,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                 <button
                   key={f}
                   onClick={() => handleQuickMultiplier(f)}
-                  className={`text-xs px-3 py-2 rounded-sm font-bold transition touch-target shrink-0 ${
+                  className={`text-xs px-3 py-2 rounded-sm font-bold transition touch-target touch-press shrink-0 ${
                     scaleMode === 'multiplier' && Math.abs(currentMultiplier - f) < 0.05
                       ? 'bg-theme-brand text-white shadow-sm'
                       : 'bg-theme-card-subtle border border-theme-subtle text-theme-muted hover:text-theme-main'
@@ -471,35 +471,35 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
           <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
             <button
               onClick={() => setDisplayMode('precision')}
-              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 rounded-sm font-bold transition touch-target shrink-0 border ${
+              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 rounded-sm font-bold transition touch-target touch-press shrink-0 border ${
                 displayMode === 'precision'
                   ? 'bg-theme-brand border-theme-brand text-white shadow-sm'
                   : 'bg-theme-card-subtle border-theme-subtle text-theme-muted hover:text-theme-main'
               }`}
             >
-              <Scale className="w-3.5 h-3.5" />
+              <Scale className="w-3.5 h-3.5" strokeWidth={1.75} />
               <span>g / kg</span>
             </button>
             <button
               onClick={() => setDisplayMode('smart')}
-              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 rounded-sm font-bold transition touch-target shrink-0 border ${
+              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 rounded-sm font-bold transition touch-target touch-press shrink-0 border ${
                 displayMode === 'smart'
                   ? 'bg-theme-brand border-theme-brand text-white shadow-sm'
                   : 'bg-theme-card-subtle border-theme-subtle text-theme-muted hover:text-theme-main'
               }`}
             >
-              <Droplet className="w-3.5 h-3.5" />
+              <Droplet className="w-3.5 h-3.5" strokeWidth={1.75} />
               <span>Misto Inteligente</span>
             </button>
             <button
               onClick={() => setDisplayMode('household')}
-              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 rounded-sm font-bold transition touch-target shrink-0 border ${
+              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 rounded-sm font-bold transition touch-target touch-press shrink-0 border ${
                 displayMode === 'household'
                   ? 'bg-theme-brand border-theme-brand text-white shadow-sm'
                   : 'bg-theme-card-subtle border-theme-subtle text-theme-muted hover:text-theme-main'
               }`}
             >
-              <Utensils className="w-3.5 h-3.5" />
+              <Utensils className="w-3.5 h-3.5" strokeWidth={1.75} />
               <span>Medidas Caseiras</span>
             </button>
           </div>

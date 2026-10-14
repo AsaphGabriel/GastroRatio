@@ -37,7 +37,14 @@ export const App: React.FC = () => {
   }, [theme]);
 
   const handleToggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    if (!('startViewTransition' in document)) {
+      setTheme(nextTheme);
+      return;
+    }
+    (document as { startViewTransition: (cb: () => void) => void }).startViewTransition(() => {
+      setTheme(nextTheme);
+    });
   };
 
   // Inicialização do IndexedDB com Carga Semente

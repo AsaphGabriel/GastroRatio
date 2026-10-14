@@ -89,10 +89,10 @@ export const PantryView: React.FC<PantryViewProps> = ({
               <button
                 type="button"
                 onClick={onClearPantry}
-                className="text-xs font-bold font-serif px-2.5 py-1 rounded-sm bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 flex items-center transition touch-target"
+                className="text-xs font-bold font-serif px-2.5 py-1 rounded-sm bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 flex items-center transition touch-target touch-press"
                 title="Desmarcar todos os itens da bancada"
               >
-                <RotateCcw className="w-3 h-3 mr-1" />
+                <RotateCcw className="w-3 h-3 mr-1" strokeWidth={1.75} />
                 Esvaziar
               </button>
             )}
@@ -101,10 +101,10 @@ export const PantryView: React.FC<PantryViewProps> = ({
               <button
                 type="button"
                 onClick={onSelectAllPantry}
-                className="text-xs font-bold font-serif px-2.5 py-1 rounded-sm bg-theme-card-subtle hover:bg-theme-card border border-theme-subtle text-theme-muted flex items-center transition touch-target"
+                className="text-xs font-bold font-serif px-2.5 py-1 rounded-sm bg-theme-card-subtle hover:bg-theme-card border border-theme-subtle text-theme-muted flex items-center transition touch-target touch-press"
                 title="Marcar todos os itens comuns para teste rápido"
               >
-                <CheckCheck className="w-3 h-3 mr-1" />
+                <CheckCheck className="w-3 h-3 mr-1" strokeWidth={1.75} />
                 Preencher
               </button>
             )}
@@ -117,7 +117,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
             <button
               key={cat.id}
               onClick={() => setSelectedCategoryFilter(cat.id)}
-              className={`shrink-0 text-sm px-3.5 py-1.5 rounded-sm border transition whitespace-nowrap font-serif touch-target ${
+              className={`shrink-0 text-sm px-3.5 py-1.5 rounded-sm border transition whitespace-nowrap font-serif touch-target touch-press ${
                 selectedCategoryFilter === cat.id
                   ? 'bg-theme-brand text-white border-theme-brand shadow-sm font-bold'
                   : 'bg-theme-card-subtle text-theme-muted hover:text-theme-main border-theme-subtle'
@@ -137,7 +137,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
                 <button
                   key={item.id}
                   onClick={() => onTogglePantryItem(item)}
-                  className={`flex items-center justify-between p-2.5 sm:p-3 rounded-sm border text-left transition select-none touch-target relative overflow-hidden ${
+                  className={`flex items-center justify-between p-2.5 sm:p-3 rounded-sm border text-left transition select-none touch-target touch-press relative overflow-hidden ${
                     isChecked
                       ? 'bg-theme-brand/25 dark:bg-theme-brand/40 border-2 border-dotted border-theme-brand shadow-md transform rotate-1'
                       : 'bg-theme-card border-theme-subtle border-dashed font-serif text-theme-main font-semibold hover:bg-theme-card-hover shadow-sm'
@@ -243,7 +243,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
                   </span>
                   <button
                     onClick={() => onSelectRecipeForScale(recipe)}
-                    className="bg-theme-brand hover:bg-theme-brand-dark text-white px-3.5 py-2 rounded-sm text-xs font-bold shadow-sm transition touch-target flex items-center font-serif"
+                    className="bg-theme-brand hover:bg-theme-brand-dark text-white px-3.5 py-2 rounded-sm text-xs font-bold shadow-sm transition touch-target touch-press flex items-center font-serif"
                   >
                     Abrir Receita →
                   </button>
@@ -263,7 +263,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
         {searchResults.missingOneIngredient.length > 0 && (
           <div className="space-y-3 pt-2">
             <h3 className="text-xs sm:text-sm font-bold text-theme-brand flex items-center font-serif">
-              <AlertCircle className="w-4 h-4 mr-1.5 shrink-0" />
+              <AlertCircle className="w-4 h-4 mr-1.5 shrink-0" strokeWidth={1.75} />
               Falta Apenas 1 Ingrediente ({searchResults.missingOneIngredient.length} opções)
             </h3>
 
@@ -282,7 +282,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
                           Falta: {missing.name}
                         </span>
                         <div className="flex items-center text-xs text-theme-muted">
-                          <Clock className="w-3.5 h-3.5 mr-1 text-theme-dim" />
+                          <Clock className="w-3.5 h-3.5 mr-1 text-theme-dim" strokeWidth={1.75} />
                           <span>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} min</span>
                         </div>
                       </div>
@@ -300,7 +300,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
                             await db.addOrUpdatePantryItem(missing.name, missing.category);
                           }
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-theme-brand hover:bg-theme-brand-dark text-white text-xs font-bold font-serif transition touch-target shadow-sm"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-theme-brand hover:bg-theme-brand-dark text-white text-xs font-bold font-serif transition touch-target touch-press shadow-sm"
                       >
                         + Tenho {missing.name}!
                       </button>

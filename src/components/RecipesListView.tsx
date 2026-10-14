@@ -175,18 +175,18 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setEditingRecipe(recipe)}
-                  className="bg-theme-app hover:bg-theme-card-hover text-theme-muted hover:text-theme-main p-2 rounded-sm border border-theme-subtle shadow-sm transition touch-target flex items-center justify-center"
+                  className="bg-theme-app hover:bg-theme-card-hover text-theme-muted hover:text-theme-main p-2 rounded-sm border border-theme-subtle shadow-sm transition touch-target touch-press flex items-center justify-center"
                   title="Editar receita"
                 >
-                  <Edit3 className="w-4 h-4" />
+                  <Edit3 className="w-4 h-4" strokeWidth={1.75} />
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDuplicate(recipe)}
-                  className="bg-theme-app hover:bg-theme-card-hover text-theme-muted hover:text-theme-main p-2 rounded-sm border border-theme-subtle shadow-sm transition touch-target flex items-center justify-center"
+                  className="bg-theme-app hover:bg-theme-card-hover text-theme-muted hover:text-theme-main p-2 rounded-sm border border-theme-subtle shadow-sm transition touch-target touch-press flex items-center justify-center"
                   title="Duplicar receita"
                 >
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-4 h-4" strokeWidth={1.75} />
                 </button>
                 <button
                   type="button"
@@ -195,18 +195,18 @@ export const RecipesListView: React.FC<RecipesListViewProps> = ({
                       onDeleteRecipe(recipe.id);
                     }
                   }}
-                  className="bg-theme-app hover:bg-rose-50 text-theme-dim hover:text-rose-600 p-2 rounded-sm border border-theme-subtle shadow-sm transition touch-target flex items-center justify-center"
+                  className="bg-theme-app hover:bg-rose-50 dark:hover:bg-rose-950/40 text-theme-dim hover:text-rose-600 dark:hover:text-rose-300 p-2 rounded-sm border border-theme-subtle shadow-sm transition touch-target touch-press flex items-center justify-center"
                   title="Excluir receita"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" strokeWidth={1.75} />
                 </button>
                 <button
                   type="button"
                   onClick={() => onSelectRecipe(recipe)}
-                  className="bg-theme-app hover:bg-theme-card border border-theme-strong text-theme-main px-3 py-2 rounded-sm font-bold transition touch-target flex items-center justify-center shadow-sm"
+                  className="bg-theme-brand hover:bg-theme-brand-dark text-white px-3.5 py-2 rounded-sm font-bold font-serif transition touch-target touch-press flex items-center justify-center shadow-sm"
                   title="Abrir receita no Modo Cozinha"
                 >
-                  <ChefHat className="w-4 h-4 mr-1.5" />
+                  <ChefHat className="w-4 h-4 mr-1.5" strokeWidth={1.75} />
                   <span>Preparar</span>
                 </button>
               </div>
