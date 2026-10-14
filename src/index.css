@@ -40,31 +40,31 @@
 
 .dark {
   color-scheme: dark;
-  --bg-app: #121010;
-  --bg-card: #1c1817;
-  --bg-card-hover: #24201e;
-  --bg-card-subtle: #201c1a;
-  --bg-header: rgba(18, 16, 16, 0.94);
+  --bg-app: #231c18;
+  --bg-card: #2e2520;
+  --bg-card-hover: #382e28;
+  --bg-card-subtle: #27201b;
+  --bg-header: rgba(35, 28, 24, 0.94);
   
-  --border-subtle: #2e2825;
-  --border-strong: #3d3531;
+  --border-subtle: rgba(212, 163, 101, 0.16);
+  --border-strong: #544337;
   
-  --text-main: #f5efe8;
-  --text-muted: #a89c93;
-  --text-dim: #70655d;
+  --text-main: #f8f2eb;
+  --text-muted: #c4b4a3;
+  --text-dim: #968576;
   
-  --brand-main: #9b3d47;
-  --brand-hover: #83313a;
-  --brand-subtle: rgba(155, 61, 71, 0.18);
-  --brand-text: #f0aab0;
+  --brand-main: #ab444f;
+  --brand-hover: #bd4e5a;
+  --brand-subtle: rgba(171, 68, 79, 0.22);
+  --brand-text: #f5b8be;
   
-  --wheat-main: #c4a170;
-  --wheat-subtle: rgba(196, 161, 112, 0.15);
+  --wheat-main: #d4a365;
+  --wheat-subtle: rgba(212, 163, 101, 0.18);
   
-  --segmented-track: #1a1615;
-  --segmented-thumb: #282321;
+  --segmented-track: #1f1815;
+  --segmented-thumb: #3d322a;
   
-  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 body {
@@ -102,6 +102,13 @@ body {
   background-position: 0 0, 8px 8px;
 }
 
+.dark .vichy-ribbon,
+.dark .vichy-ribbon-thick {
+  background-image: 
+    linear-gradient(45deg, rgba(171, 68, 79, 0.25) 25%, transparent 25%, transparent 75%, rgba(171, 68, 79, 0.25) 75%),
+    linear-gradient(45deg, rgba(171, 68, 79, 0.25) 25%, transparent 25%, transparent 75%, rgba(171, 68, 79, 0.25) 75%);
+}
+
 /* Padrão de Papel Pautado de Caderno de Receitas */
 .notebook-paper {
   background-color: var(--bg-card);
@@ -124,6 +131,9 @@ body {
   background-color: rgba(107, 40, 48, 0.12);
   z-index: 0;
   pointer-events: none;
+}
+.dark .notebook-margin::before {
+  background-color: rgba(171, 68, 79, 0.22);
 }
 .notebook-margin > * {
   position: relative;
