@@ -139,8 +139,8 @@ export const PantryView: React.FC<PantryViewProps> = ({
                   onClick={() => onTogglePantryItem(item)}
                   className={`flex items-center justify-between p-2.5 sm:p-3 rounded-sm border text-left transition select-none touch-target relative overflow-hidden ${
                     isChecked
-                      ? 'bg-theme-brand/20 dark:bg-theme-brand/30 border-2 border-dotted border-theme-brand/60 text-[#4a181d] dark:text-rose-200 font-serif font-bold shadow-md transform rotate-1'
-                      : 'bg-theme-card border-theme-subtle border-dashed font-serif text-theme-muted hover:bg-theme-card-hover shadow-sm'
+                      ? 'bg-theme-brand/40 dark:bg-theme-brand/30 border-2 border-dotted border-theme-brand/70 text-[#2b0d10] dark:text-rose-200 font-serif font-black shadow-md transform rotate-1'
+                      : 'bg-theme-card border-theme-subtle border-dashed font-serif text-theme-main font-semibold hover:bg-theme-card-hover shadow-sm'
                   }`}
                 >
                   <span className="text-sm truncate mr-1.5 z-10">{item.name}</span>
