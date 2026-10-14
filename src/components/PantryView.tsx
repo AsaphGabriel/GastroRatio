@@ -139,11 +139,15 @@ export const PantryView: React.FC<PantryViewProps> = ({
                   onClick={() => onTogglePantryItem(item)}
                   className={`flex items-center justify-between p-2.5 sm:p-3 rounded-sm border text-left transition select-none touch-target relative overflow-hidden ${
                     isChecked
-                      ? 'bg-theme-brand/40 dark:bg-theme-brand/30 border-2 border-dotted border-theme-brand/70 text-[#2b0d10] dark:text-rose-200 font-serif font-black shadow-md transform rotate-1'
+                      ? 'bg-theme-brand/25 border-2 border-dotted border-theme-brand shadow-md transform rotate-1'
                       : 'bg-theme-card border-theme-subtle border-dashed font-serif text-theme-main font-semibold hover:bg-theme-card-hover shadow-sm'
                   }`}
                 >
-                  <span className="text-sm truncate mr-1.5 z-10">{item.name}</span>
+                  <span className={`text-sm truncate mr-1.5 z-10 font-serif font-black ${
+                    isChecked ? 'text-[#30050a]' : 'text-theme-main'
+                  }`}>
+                    {item.name}
+                  </span>
                   {isChecked && (
                     <div className="absolute -right-2 -bottom-2 text-theme-brand/10 pointer-events-none">
                       <ChefHat className="w-10 h-10 rotate-[-20deg]" />
@@ -271,10 +275,10 @@ export const PantryView: React.FC<PantryViewProps> = ({
                     key={recipe.id}
                     className="bg-theme-card border border-theme-subtle rounded-sm p-4 flex flex-col justify-between space-y-3 shadow-sm hover:shadow-md transition relative overflow-hidden"
                   >
-                    <div className="absolute top-0 left-0 bottom-0 w-1 bg-amber-500/50" />
+                    <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-theme-brand" />
                     <div className="pl-2 relative z-10">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-sm bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 font-bold font-serif border border-amber-200 dark:border-amber-800">
+                        <span className="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-sm bg-theme-brand-subtle text-theme-brand font-bold font-serif border border-theme-brand/30">
                           Falta: {missing.name}
                         </span>
                         <div className="flex items-center text-xs text-theme-muted">
@@ -296,7 +300,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
                             await db.addOrUpdatePantryItem(missing.name, missing.category);
                           }
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-theme-wheat border border-theme-strong/30 text-theme-strong text-xs font-bold font-serif hover:bg-theme-wheat/80 transition touch-target shadow-sm"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-theme-brand hover:bg-theme-brand-dark text-white text-xs font-bold font-serif transition touch-target shadow-sm"
                       >
                         + Tenho {missing.name}!
                       </button>
