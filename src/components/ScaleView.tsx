@@ -3,8 +3,7 @@ import { Recipe, RecipeIngredient, CustomSubstitution } from '../domain/schemas/
 import { ScaleRecipeUseCase, ScaleOptions } from '../domain/use-cases/ScaleRecipe.js';
 import { ConvertUnitsUseCase } from '../domain/use-cases/ConvertUnits.js';
 import { useWakeLock } from '../hooks/useWakeLock.js';
-import { findChemicalSubstitution } from '../domain/index.js';
-import { formatHouseholdFraction } from '../utils/fractions.js';
+import { findChemicalSubstitution, FormatDualMeasurementUseCase, DisplayMode, DualMeasurement } from '../domain/index.js';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../data/database.js';
 import {
@@ -35,7 +34,7 @@ interface ScaleViewProps {
 
 export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, onOpenInBakers, onDeleteRecipe }) => {
   const [scaleMode, setScaleMode] = useState<'multiplier' | 'anchor'>('multiplier');
-  const [displayMode, setDisplayMode] = useState<'precision' | 'smart' | 'household'>('smart');
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('smart');
   const [currentMultiplier, setCurrentMultiplier] = useState<number>(1.0);
   const [anchorId, setAnchorId] = useState<string>(recipe.ingredients[0]?.id || '');
   const [anchorGramsInput, setAnchorGramsInput] = useState<number>(() => {
@@ -229,32 +228,6 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
     setScaleMode('multiplier');
     const newPortions = Math.max(0.5, scaledResult.recipe.baseYield + delta);
     setCurrentMultiplier(newPortions / recipe.baseYield);
-  };
-
-  const formatMeasurement = (ing: RecipeIngredient, mode: 'precision' | 'smart' | 'household'): { amount: string | number, unit: string } => {
-    const conv = ConvertUnitsUseCase.execute(ing.name, ing.amount, ing.unit);
-    const g = conv.grams.toNumber();
-    
-    if (mode === 'household') {
-      if (ing.unit === 'unit') return { amount: ing.amount, unit: 'unidades' };
-      const ml = conv.milliliters ? conv.milliliters.toNumber() : g; // fallback 1g=1ml
-      if (ml >= 60) return { amount: formatHouseholdFraction(ml / 240), unit: 'xícaras' };
-      if (ml >= 15) return { amount: formatHouseholdFraction(ml / 15), unit: 'colheres (sopa)' };
-      if (ml >= 2.5) return { amount: formatHouseholdFraction(ml / 5), unit: 'colheres (chá)' };
-      return { amount: Math.round(g), unit: 'g' };
-    }
-
-    if (mode === 'smart' && ing.category === 'liquid') {
-      const ml = conv.milliliters ? conv.milliliters.toNumber() : g;
-      if (ml >= 1000) return { amount: (ml / 1000).toFixed(2).replace(/\.?0+$/, ''), unit: 'L' };
-      return { amount: Math.round(ml), unit: 'ml' };
-    }
-
-    if (mode === 'smart' && g >= 1000) {
-      return { amount: (g / 1000).toFixed(2).replace(/\.?0+$/, ''), unit: 'kg' };
-    }
-
-    return { amount: Math.round(g), unit: 'g' };
   };
 
   return (
@@ -511,7 +484,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
             const originalIng = recipe.ingredients.find(o => o.id === ing.id) || ing;
             const subs = getSubsForIngredient(originalIng.name, recipe.isBakingRecipe);
             const isSubOpen = expandedSubId === ing.id;
-            const measurement = formatMeasurement(ing, displayMode);
+            const measurement: DualMeasurement = FormatDualMeasurementUseCase.execute(ing, displayMode);
             const activeSubForIng = activeSubs[ing.id];
 
             return (
@@ -568,11 +541,18 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                     </div>
                   </div>
 
-                  <div className="text-right shrink-0">
-                    <span className={`text-base sm:text-xl font-black text-theme-brand scale-number ${isDone ? 'line-through text-theme-dim' : ''}`} title={`${Math.round(ing.amount)} g`}>
-                      {measurement.amount}
-                    </span>
-                    <span className="text-xs text-theme-dim ml-1 font-bold">{measurement.unit}</span>
+                  <div className="text-right shrink-0 flex flex-col items-end justify-center">
+                    <div className="flex items-baseline justify-end">
+                      <span className={`text-base sm:text-xl font-black text-theme-brand scale-number font-serif ${isDone ? 'line-through text-theme-dim' : ''}`} title={`${Math.round(ing.amount)} g`}>
+                        {measurement.primaryAmount}
+                      </span>
+                      <span className="text-xs text-theme-dim ml-1 font-bold font-serif">{measurement.primaryUnit}</span>
+                    </div>
+                    {measurement.secondaryText && (
+                      <span className={`text-[10px] sm:text-[11px] text-theme-muted font-serif italic ${isDone ? 'line-through opacity-60' : ''}`}>
+                        {measurement.secondaryText}
+                      </span>
+                    )}
                   </div>
                 </div>
 
