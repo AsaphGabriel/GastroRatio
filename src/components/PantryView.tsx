@@ -139,7 +139,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
                   onClick={() => onTogglePantryItem(item)}
                   className={`flex items-center justify-between p-2.5 sm:p-3 rounded-sm border text-left transition select-none touch-target relative overflow-hidden ${
                     isChecked
-                      ? 'bg-amber-50/70 dark:bg-stone-900/80 border-2 border-dotted border-theme-brand/60 text-[#4a181d] dark:text-rose-200 font-serif font-bold shadow-md transform rotate-1'
+                      ? 'bg-theme-brand/20 dark:bg-theme-brand/30 border-2 border-dotted border-theme-brand/60 text-[#4a181d] dark:text-rose-200 font-serif font-bold shadow-md transform rotate-1'
                       : 'bg-theme-card border-theme-subtle border-dashed font-serif text-theme-muted hover:bg-theme-card-hover shadow-sm'
                   }`}
                 >
@@ -178,7 +178,11 @@ export const PantryView: React.FC<PantryViewProps> = ({
               onChange={(e) => onToggleAssumeStaples(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 relative bg-theme-card-subtle peer-checked:bg-theme-brand transition-colors peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-track border border-theme-subtle"></div>
+            <div
+              className={`w-11 h-6 relative transition-colors duration-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-track border border-theme-subtle ${
+                assumeBasicStaples ? 'bg-theme-brand' : 'bg-theme-card-subtle'
+              }`}
+            ></div>
           </label>
         </div>
       </section>
