@@ -474,8 +474,8 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
 
           {/* Ingredientes */}
           <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
                 <h3 className="text-xs font-bold text-theme-main uppercase tracking-wider">Ingredientes</h3>
                 <p className="text-[10px] text-theme-muted">
                   {isAdvanced
@@ -486,9 +486,9 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
               <button
                 type="button"
                 onClick={addIngredient}
-                className="text-xs flex items-center px-2.5 py-1.5 rounded-xl bg-theme-brand/10 text-theme-brand font-bold hover:bg-theme-brand/20 transition touch-target"
+                className="text-xs flex items-center px-3 py-1.5 rounded-xl bg-theme-brand/10 text-theme-brand font-bold hover:bg-theme-brand/20 transition touch-target touch-press shrink-0 font-serif"
               >
-                <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar
+                <Plus className="w-3.5 h-3.5 mr-1 shrink-0" strokeWidth={2} /> Adicionar
               </button>
             </div>
 
@@ -562,17 +562,17 @@ export const RecipeEditorModal: React.FC<RecipeEditorModalProps> = ({ isOpen, re
 
           {/* Etapas de Preparo */}
           <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
                 <h3 className="text-xs font-bold text-theme-main uppercase tracking-wider">Modo de Preparo</h3>
                 <p className="text-[10px] text-theme-muted">Etapas claras para acompanhar no Modo Cozinha.</p>
               </div>
               <button
                 type="button"
                 onClick={addStep}
-                className="text-xs flex items-center px-2.5 py-1.5 rounded-xl bg-theme-brand/10 text-theme-brand font-bold hover:bg-theme-brand/20 transition touch-target"
+                className="text-xs flex items-center px-3 py-1.5 rounded-xl bg-theme-brand/10 text-theme-brand font-bold hover:bg-theme-brand/20 transition touch-target touch-press shrink-0 font-serif"
               >
-                <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar Etapa
+                <Plus className="w-3.5 h-3.5 mr-1 shrink-0" strokeWidth={2} /> Adicionar Etapa
               </button>
             </div>
             <div className="space-y-2">

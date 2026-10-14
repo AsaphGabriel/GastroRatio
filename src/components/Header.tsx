@@ -79,18 +79,20 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Botão de Alternância de Tema (Sol / Lua) com microinteração suave */}
+          {/* Botão de Alternância de Tema (Sol / Lua) com giro suave desacoplado de view transition freeze */}
           <button
             onClick={onToggleTheme}
-            className="w-9 h-9 rounded-xl border border-theme-subtle bg-theme-card hover:bg-theme-card-subtle flex items-center justify-center text-theme-main transition shadow-sm touch-target touch-press active:rotate-12"
+            className="w-9 h-9 rounded-xl border border-theme-subtle bg-theme-card hover:bg-theme-card-subtle flex items-center justify-center text-theme-main transition shadow-sm touch-target touch-press"
             title={theme === 'dark' ? 'Alternar para Tema Claro (Bege Culinário)' : 'Alternar para Tema Escuro (Caderno de Vó)'}
             aria-label="Alternar tema"
           >
-            {theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-amber-400 animate-in fade-in duration-200" strokeWidth={1.75} />
-            ) : (
-              <Moon className="w-4 h-4 text-amber-900 animate-in fade-in duration-200" strokeWidth={1.75} />
-            )}
+            <div className={`transition-transform duration-500 ease-out transform ${theme === 'dark' ? 'rotate-180' : 'rotate-0'}`}>
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" strokeWidth={1.75} />
+              ) : (
+                <Moon className="w-4 h-4 text-amber-900" strokeWidth={1.75} />
+              )}
+            </div>
           </button>
 
           {/* Status Offline/Online Compacto */}
