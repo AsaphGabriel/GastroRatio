@@ -66,7 +66,7 @@ export const PantryView: React.FC<PantryViewProps> = ({
 
 
       {/* 2. Bancada de Perecíveis (Chips com Lei de Fitts e Ações Rápidas) */}
-      <section className="bg-theme-card border border-theme-subtle rounded-sm p-4 sm:p-5 space-y-4 shadow-sm transition-colors relative overflow-hidden notebook-paper">
+      <section className="bg-theme-brand-subtle/50 border border-theme-subtle rounded-sm p-4 sm:p-5 space-y-4 shadow-sm transition-colors relative overflow-hidden notebook-paper">
         <div className="vichy-ribbon-thick absolute top-0 left-0 right-0 z-0" />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-theme-subtle border-dashed relative z-10 mt-2">
           <div>

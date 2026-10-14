@@ -346,7 +346,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                     onDeleteRecipe();
                   }
                 }}
-                className="bg-transparent hover:bg-rose-500/10 text-theme-dim hover:text-rose-500 px-2.5 py-2 rounded-xl transition touch-target flex items-center justify-center border border-transparent hover:border-rose-500/30 self-start shrink-0"
+                className="bg-transparent hover:bg-rose-500/10 text-theme-dim hover:text-rose-500 px-2.5 py-2 rounded-sm transition touch-target flex items-center justify-center border border-transparent hover:border-rose-500/30 self-start shrink-0"
                 title="Excluir receita"
               >
                 <Trash2 className="w-4 h-4" />
@@ -355,7 +355,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
             {recipe.isBakingRecipe && onOpenInBakers && (
               <button
                 onClick={() => onOpenInBakers(recipe)}
-                className="bg-amber-500/15 hover:bg-amber-500/25 text-theme-brand-text dark:text-amber-300 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition touch-target flex items-center shrink-0 self-start"
+                className="bg-amber-500/15 hover:bg-amber-500/25 text-theme-brand-text dark:text-amber-300 border border-amber-500/30 px-3.5 py-2 rounded-sm text-xs font-bold transition touch-target flex items-center shrink-0 self-start"
               >
                 <Croissant className="w-4 h-4 mr-1.5" />
                 <span>Modo Padeiro →</span>
@@ -370,10 +370,10 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
             {/* Seletor de Porções */}
             <div className="flex items-center space-x-2">
               <span className="text-xs text-theme-muted font-medium shrink-0">Rendimento:</span>
-              <div className="flex items-center bg-theme-card-subtle border border-theme-subtle rounded-xl p-1">
+              <div className="flex items-center bg-theme-card-subtle border border-theme-subtle rounded-sm p-1">
                 <button
                   onClick={() => handleIncrementPortions(-1)}
-                  className="w-9 h-9 rounded-lg bg-theme-card hover:bg-theme-card-hover border border-theme-subtle flex items-center justify-center text-theme-main transition touch-target"
+                  className="w-9 h-9 rounded-sm bg-theme-card hover:bg-theme-card-hover border border-theme-subtle flex items-center justify-center text-theme-main transition touch-target"
                   title="Diminuir porção"
                 >
                   <Minus className="w-4 h-4" />
@@ -386,7 +386,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                 </div>
                 <button
                   onClick={() => handleIncrementPortions(1)}
-                  className="w-9 h-9 rounded-lg bg-theme-card hover:bg-theme-card-hover border border-theme-subtle flex items-center justify-center text-theme-main transition touch-target"
+                  className="w-9 h-9 rounded-sm bg-theme-card hover:bg-theme-card-hover border border-theme-subtle flex items-center justify-center text-theme-main transition touch-target"
                   title="Aumentar porção"
                 >
                   <Plus className="w-4 h-4" />
@@ -400,7 +400,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                 <button
                   key={f}
                   onClick={() => handleQuickMultiplier(f)}
-                  className={`text-xs px-3 py-2 rounded-xl font-bold transition touch-target shrink-0 ${
+                  className={`text-xs px-3 py-2 rounded-sm font-bold transition touch-target shrink-0 ${
                     scaleMode === 'multiplier' && Math.abs(currentMultiplier - f) < 0.05
                       ? 'bg-theme-brand text-white shadow-sm'
                       : 'bg-theme-card-subtle border border-theme-subtle text-theme-muted hover:text-theme-main'
@@ -413,7 +413,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
           </div>
 
           {/* Ajustar a partir de uma sobra ou embalagem fechada */}
-          <div className="bg-theme-card-subtle border border-theme-subtle rounded-xl p-3 flex flex-col gap-2">
+          <div className="bg-theme-card-subtle border border-theme-subtle rounded-sm p-3 flex flex-col gap-2">
             <div className="flex items-center space-x-2">
               <Anchor className="w-4 h-4 text-theme-brand shrink-0" />
               <div>
@@ -434,7 +434,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                     setAnchorGramsInput(conv.grams.toNumber());
                   }
                 }}
-                className="bg-theme-card border border-theme-subtle rounded-xl px-2.5 py-1.5 text-xs text-theme-main focus:outline-none focus:border-theme-brand"
+                className="bg-theme-card border border-theme-subtle rounded-sm px-2.5 py-1.5 text-xs text-theme-main focus:outline-none focus:border-theme-brand"
               >
                 {recipe.ingredients.map((ing) => (
                   <option key={ing.id} value={ing.id}>
@@ -443,7 +443,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                 ))}
               </select>
 
-              <div className="flex items-center bg-theme-card border border-theme-subtle rounded-xl px-2.5 py-1">
+              <div className="flex items-center bg-theme-card border border-theme-subtle rounded-sm px-2.5 py-1">
                 <input
                   type="number"
                   value={anchorGramsInput}
@@ -517,7 +517,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
             return (
               <div
                 key={ing.id}
-                className={`p-3 sm:p-3.5 rounded-xl border transition ${
+                className={`p-3 sm:p-3.5 rounded-sm border transition ${
                   isDone
                     ? 'bg-theme-card-subtle border-theme-subtle opacity-60'
                     : 'bg-theme-card border-theme-subtle hover:border-theme-strong'
@@ -589,7 +589,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                         : 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30';
 
                       return (
-                        <div key={idx} className="bg-amber-500/5 border border-amber-500/20 p-3 rounded-xl text-xs space-y-1.5 text-theme-main">
+                        <div key={idx} className="bg-amber-500/5 border border-amber-500/20 p-3 rounded-sm text-xs space-y-1.5 text-theme-main">
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-1.5 text-theme-brand-text dark:text-amber-200 font-bold">
                               <FlaskConical className="w-3.5 h-3.5 text-theme-brand-text dark:text-amber-400 shrink-0" />
@@ -611,7 +611,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                             <p className="text-[11px] text-theme-muted leading-relaxed">{sub.explanation}</p>
                           )}
                           {sub.waterAdjustmentAlert && (
-                            <div className="p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-theme-brand-text dark:text-amber-200 text-[11px] mt-1 font-mono font-medium">
+                            <div className="p-2.5 rounded-sm bg-amber-500/15 border border-amber-500/30 text-theme-brand-text dark:text-amber-200 text-[11px] mt-1 font-mono font-medium">
                               {sub.waterAdjustmentAlert}
                             </div>
                           )}
@@ -623,7 +623,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                                 setActiveSubs(prev => ({ ...prev, [ing.id]: { multiplier: sub.multiplier!, newName: sub.overrideName || sub.substitute, liquidDeltaRatio: sub.liquidDeltaRatio } }));
                                 setExpandedSubId(null);
                               }}
-                              className="mt-2 w-full bg-theme-brand hover:bg-theme-brand-hover text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
+                              className="mt-2 w-full bg-theme-brand hover:bg-theme-brand-hover text-white px-3 py-2 rounded-sm text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
                             >
                               Aplicar — Substituir por {sub.substitute}
                             </button>
@@ -642,7 +642,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
                             return clone;
                           });
                         }}
-                        className="w-full bg-theme-card border border-theme-subtle text-theme-main px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
+                        className="w-full bg-theme-card border border-theme-subtle text-theme-main px-3 py-2 rounded-sm text-xs font-bold shadow-sm transition touch-target flex items-center justify-center"
                       >
                         Reverter para {originalIng.name} (Original)
                       </button>
@@ -677,7 +677,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
         <div 
           onTouchStart={handleTouchStart} 
           onTouchEnd={handleTouchEnd}
-          className="bg-theme-card-subtle border border-theme-subtle rounded-xl p-4 sm:p-6 min-h-[110px] flex items-center select-none"
+          className="bg-theme-card-subtle border border-theme-subtle rounded-sm p-4 sm:p-6 min-h-[110px] flex items-center select-none"
         >
           <p className="text-base sm:text-lg text-theme-main font-medium leading-relaxed">
             {recipe.steps[activeStepIndex]}
@@ -689,7 +689,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
           <button
             onClick={() => setActiveStepIndex((prev) => Math.max(0, prev - 1))}
             disabled={activeStepIndex === 0}
-            className="flex items-center px-3.5 py-2 rounded-xl bg-theme-card border border-theme-subtle hover:bg-theme-card-hover disabled:opacity-30 disabled:cursor-not-allowed text-xs font-semibold text-theme-main transition touch-target"
+            className="flex items-center px-3.5 py-2 rounded-sm bg-theme-card border border-theme-subtle hover:bg-theme-card-hover disabled:opacity-30 disabled:cursor-not-allowed text-xs font-semibold text-theme-main transition touch-target"
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
             Anterior
@@ -698,7 +698,7 @@ export const ScaleView: React.FC<ScaleViewProps> = ({ recipe, onBackToRecipes, o
           <button
             onClick={() => setActiveStepIndex((prev) => Math.min(recipe.steps.length - 1, prev + 1))}
             disabled={activeStepIndex === recipe.steps.length - 1}
-            className="flex items-center px-4 py-2 rounded-xl bg-theme-brand hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold text-white shadow-sm transition touch-target"
+            className="flex items-center px-4 py-2 rounded-sm bg-theme-brand hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold text-white shadow-sm transition touch-target"
           >
             Próxima
             <ChevronRight className="w-4 h-4 ml-1" />
